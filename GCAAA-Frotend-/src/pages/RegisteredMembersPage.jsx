@@ -1,28 +1,18 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, X, ArrowLeft, ChevronLeft, ChevronRight, FileSpreadsheet, Users } from 'lucide-react';
-import { allCohorts, getMembershipNo } from '../data/cohortRecords';
+import {
+  Search,
+  X,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  FileSpreadsheet,
+  Users,
+  Loader2,
+  AlertCircle,
+  RotateCcw,
+} from 'lucide-react';
 import { fetchRegisteredMembersFromApi } from '../Api/registeredMemberApi';
-
-// Helper to format names cleanly (Title Case, remove deceased tags)
-const cleanAndFormatName = (str = '') => {
-  const clean = str.replace(/\[Deceased\]/gi, '').trim();
-  if (clean === clean.toUpperCase() || clean === clean.toLowerCase()) {
-    return clean
-      .toLowerCase()
-      .split(' ')
-      .filter(Boolean)
-      .map((w) => {
-        // preserve small initials like S.M. or A.K.
-        if (w.includes('.')) {
-          return w.toUpperCase();
-        }
-        return w.charAt(0).toUpperCase() + w.slice(1);
-      })
-      .join(' ');
-  }
-  return clean;
-};
 
 // Helper hook for responsive column count: 1 on mobile, 2 on tablet, 3 on desktop
 const useResponsiveColumns = () => {
@@ -52,150 +42,84 @@ export const RegisteredMembersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(150); // 150 gives 50 rows per column across 3 columns
+  const [itemsPerPage, setItemsPerPage] = useState(150);
+
+  // Dynamic MongoDB state (Only from Backend)
+  const [members, setMembers] = useState([]);
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Debounce search query to prevent excessive API requests
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
+      setCurrentPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Dynamic MongoDB state
-  const [dbMembers, setDbMembers] = useState(null);
-  const [dbTotal, setDbTotal] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isLiveDb, setIsLiveDb] = useState(false);
-
-  // 1. Build master sorted list of all registered members across all cohorts (as fallback / baseline)
-  const masterMembers = useMemo(() => {
-    const list = [];
-    const seen = new Set();
-
-    // Process each cohort dataset (Bachelor of Architecture and PG courses)
-    Object.entries(allCohorts).forEach(([cohortKey, cohort]) => {
-      (cohort.records || []).forEach((r) => {
-        const rawName = r.name || '';
-        const name = cleanAndFormatName(rawName);
-        const memNo = r.membershipNo || getMembershipNo(r);
-
-        const dedupeKey = `${name.toLowerCase()}___${memNo.toLowerCase()}`;
-        if (!seen.has(dedupeKey)) {
-          seen.add(dedupeKey);
-          list.push({
-            name,
-            membershipNo: memNo,
-            year: r.year,
-            cohort: cohortKey,
-          });
-        }
+  // Fetch purely from Backend MongoDB API
+  const fetchMembers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchRegisteredMembersFromApi({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearch,
+        view: 'public',
+        sortBy: 'createdAt',
+        order: 'desc',
       });
-    });
 
-    // Sort alphabetically by name (matching reference sample)
-    list.sort((a, b) => a.name.localeCompare(b.name));
-
-    // Assign sequential S.No (1, 2, 3...)
-    return list.map((item, idx) => ({
-      ...item,
-      sno: idx + 1,
-      uniqueKey: `${item.sno}-${item.membershipNo}`,
-    }));
-  }, []);
-
-  // 2. Fetch from Backend MongoDB API using Axios
-  useEffect(() => {
-    let isMounted = true;
-    const fetchDb = async () => {
-      setLoading(true);
-      try {
-        const res = await fetchRegisteredMembersFromApi({
-          page: currentPage,
-          limit: itemsPerPage,
-          search: debouncedSearch,
-          view: 'public',
-          sortBy: 'createdAt',
-          order: 'desc',
-        });
-        if (isMounted && res.success) {
-          setDbMembers(res.data);
-          setDbTotal(res.total);
-          setIsLiveDb(true);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setIsLiveDb(false);
-          setDbMembers(null);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+      if (res && res.success) {
+        setMembers(res.data || []);
+        setTotalMembers(res.total ?? 0);
+      } else {
+        setError(res?.message || 'Failed to fetch registered members from server');
       }
-    };
-
-    fetchDb();
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedSearch, currentPage, itemsPerPage]);
-
-  // 3. Filter fallback members if DB not reachable
-  const filteredMembers = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
-    if (!q) return masterMembers;
-
-    return masterMembers.filter((item) => {
-      const matchName = item.name.toLowerCase().includes(q);
-      const matchMem = (item.membershipNo || '').toLowerCase().includes(q);
-      return matchName || matchMem;
-    });
-  }, [masterMembers, debouncedSearch]);
-
-  // Reset pagination when debounced search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch]);
-
-  // 4. Determine total count & pagination
-  const totalFiltered = isLiveDb && dbTotal !== null ? dbTotal : filteredMembers.length;
-  const isAll = itemsPerPage === 'ALL';
-  const effectiveLimit = isAll ? totalFiltered : Number(itemsPerPage);
-  const totalPages = isAll ? 1 : Math.ceil(totalFiltered / effectiveLimit) || 1;
-
-  // 5. Slice of items for display
-  const currentSlice = useMemo(() => {
-    if (isLiveDb && dbMembers) {
-      return dbMembers.map((m, idx) => ({
-        ...m,
-        sno: m.sno || m.displaySno || (currentPage - 1) * (Number(itemsPerPage) || 150) + idx + 1,
-        uniqueKey: m._id || `${m.sno}-${m.membershipNo}`,
-      }));
+    } catch (err) {
+      console.error('Error fetching members from backend:', err);
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        'Unable to load data from backend server. Please verify backend connection.'
+      );
+    } finally {
+      setLoading(false);
     }
-    if (isAll) return filteredMembers;
-    const start = (currentPage - 1) * effectiveLimit;
-    return filteredMembers.slice(start, start + effectiveLimit);
-  }, [isLiveDb, dbMembers, filteredMembers, isAll, currentPage, effectiveLimit, itemsPerPage]);
+  }, [currentPage, itemsPerPage, debouncedSearch]);
 
-  // 6. Distribute currentSlice across responsive columns (3 on desktop, 2 on tablet, 1 on mobile)
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  // Determine pagination parameters
+  const isAll = itemsPerPage === 'ALL';
+  const effectiveLimit = isAll ? totalMembers : Number(itemsPerPage) || 150;
+  const totalPages = isAll ? 1 : Math.ceil(totalMembers / effectiveLimit) || 1;
+
+  // Distribute items across responsive columns (3 on desktop, 2 on tablet, 1 on mobile)
   const columnsData = useMemo(() => {
     const numCols = responsiveCols;
     const cols = [];
-    const total = currentSlice.length;
+    const total = members.length;
     let startIndex = 0;
 
     for (let i = 0; i < numCols; i++) {
       const remainingCols = numCols - i;
       const remainingItems = total - startIndex;
       const chunkSize = Math.ceil(remainingItems / remainingCols);
-      cols.push(currentSlice.slice(startIndex, startIndex + chunkSize));
+      cols.push(members.slice(startIndex, startIndex + chunkSize));
       startIndex += chunkSize;
     }
     return cols;
-  }, [currentSlice, responsiveCols]);
+  }, [members, responsiveCols]);
 
   return (
     <div className="min-h-screen bg-[#F4F6F9] text-neutral-900 pb-20">
-      {/* 1. Header Banner (Prevents sticky navbar overlap and matches site theme) */}
+      {/* 1. Header Banner */}
       <div className="bg-[#0C0D12] text-white pt-8 sm:pt-10 pb-6 sm:pb-8 px-4 sm:px-8 lg:px-14 border-b border-neutral-800">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -230,20 +154,23 @@ export const RegisteredMembersPage = () => {
         </div>
       </div>
 
-      {/* 2. Main Content Card Container (Matching Sample Image Layout & Visuals) */}
+      {/* 2. Main Content Card Container */}
       <div className="max-w-[1400px] mx-auto px-2 sm:px-8 lg:px-14 py-4 sm:py-8">
         <div className="bg-white rounded-xl border border-neutral-200/90 shadow-sm p-3 sm:p-6 md:p-8">
-          {/* Header Title (Matching 2nd Photo: "Registered Members") */}
+          {/* Header Title & Dynamic Total Count from Backend */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-2xl sm:text-3xl font-medium text-neutral-700 tracking-tight">
               Registered Members
             </h2>
-            <div className="text-xs text-neutral-500 font-medium">
-              Total Members: <strong className="text-neutral-900">{masterMembers.length}</strong>
+            <div className="text-xs text-neutral-500 font-medium flex items-center gap-2">
+              <span>Total Members:</span>
+              <strong className="text-neutral-900 text-sm">
+                {loading && totalMembers === 0 ? '...' : totalMembers.toLocaleString()}
+              </strong>
             </div>
           </div>
 
-          {/* Search Bar (Matching 2nd Photo: "Search name or membership no.") */}
+          {/* Search Bar */}
           <div className="relative mb-6">
             <input
               type="text"
@@ -268,8 +195,32 @@ export const RegisteredMembersPage = () => {
             )}
           </div>
 
-          {/* Multi-Column Tables with Responsive Column Widths */}
-          {totalFiltered > 0 ? (
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <span>{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={fetchMembers}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-xs cursor-pointer transition-colors shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Retry</span>
+              </button>
+            </div>
+          )}
+
+          {/* Loading Indicator */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-neutral-500 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#E31E24]" />
+              <p className="text-xs sm:text-sm font-medium">Loading registered members from database...</p>
+            </div>
+          ) : totalMembers > 0 && members.length > 0 ? (
+            /* Multi-Column Tables with Responsive Column Widths */
             <div
               className={`grid gap-4 sm:gap-6 ${
                 responsiveCols === 3
@@ -307,7 +258,7 @@ export const RegisteredMembersPage = () => {
                       <tbody className="divide-y divide-neutral-100">
                         {colItems.map((item, rowIdx) => (
                           <tr
-                            key={item.uniqueKey}
+                            key={item._id || `${item.sno}-${item.membershipNo}-${rowIdx}`}
                             className={`transition-colors hover:bg-red-50 ${
                               rowIdx % 2 === 0 ? 'bg-white' : 'bg-neutral-50/80'
                             }`}
@@ -320,7 +271,7 @@ export const RegisteredMembersPage = () => {
                               }}
                               className="py-2 px-2 sm:px-3 text-neutral-600 font-medium align-middle text-center sm:text-left whitespace-nowrap text-xs sm:text-sm"
                             >
-                              {item.sno}
+                              {item.sno ?? item.displaySno ?? '-'}
                             </td>
 
                             {/* Name */}
@@ -356,21 +307,24 @@ export const RegisteredMembersPage = () => {
                 No registered members found
               </h3>
               <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
-                No records match &quot;<strong className="text-neutral-700">{searchQuery}</strong>&quot;.
-                Try checking the spelling or search by member surname or ID.
+                {searchQuery
+                  ? `No records match "${searchQuery}". Try checking the spelling or search by member name or ID.`
+                  : 'No member records exist in the database.'}
               </p>
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-2 bg-neutral-800 text-white text-xs font-bold rounded-md hover:bg-neutral-700 transition-colors cursor-pointer"
-              >
-                Clear Search
-              </button>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 px-4 py-2 bg-neutral-800 text-white text-xs font-bold rounded-md hover:bg-neutral-700 transition-colors cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
           )}
 
           {/* Bottom Pagination & Records Summary Bar */}
-          {totalFiltered > 0 && (
+          {!loading && totalMembers > 0 && (
             <div className="mt-8 pt-4 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-600">
               {/* Left: Items per page selector & status */}
               <div className="flex flex-wrap items-center gap-3">
@@ -398,13 +352,13 @@ export const RegisteredMembersPage = () => {
                 <span>
                   Showing{' '}
                   <strong className="text-neutral-900 font-bold">
-                    {isAll ? 1 : Math.min((currentPage - 1) * effectiveLimit + 1, totalFiltered)}
+                    {isAll ? 1 : Math.min((currentPage - 1) * effectiveLimit + 1, totalMembers)}
                   </strong>{' '}
                   to{' '}
                   <strong className="text-neutral-900 font-bold">
-                    {isAll ? totalFiltered : Math.min(currentPage * effectiveLimit, totalFiltered)}
+                    {isAll ? totalMembers : Math.min(currentPage * effectiveLimit, totalMembers)}
                   </strong>{' '}
-                  of <strong className="text-neutral-900 font-bold">{totalFiltered}</strong> members
+                  of <strong className="text-neutral-900 font-bold">{totalMembers}</strong> members
                   {searchQuery && ' (filtered)'}
                 </span>
               </div>
