@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, X, ArrowLeft, ChevronLeft, ChevronRight, FileSpreadsheet, Users } from 'lucide-react';
 import { allCohorts, getMembershipNo } from '../data/cohortRecords';
-import { fetchRegisteredMembersFromApi } from '../api/registeredMemberApi';
+import { fetchRegisteredMembersFromApi } from '../Api/registeredMemberApi';
 
 // Helper to format names cleanly (Title Case, remove deceased tags)
 const cleanAndFormatName = (str = '') => {

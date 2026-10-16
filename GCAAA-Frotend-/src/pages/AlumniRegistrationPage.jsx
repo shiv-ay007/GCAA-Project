@@ -30,7 +30,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import logoImg from '@/assets/images/logo.png';
-import { submitAlumniRegistration } from '@/api/registeredMemberApi';
+import { submitAlumniRegistration } from '@/Api/registeredMemberApi';
 
 export const AlumniRegistrationPage = () => {
   // Life Membership Form State (Based on Official GCAAA Membership Registration Form)

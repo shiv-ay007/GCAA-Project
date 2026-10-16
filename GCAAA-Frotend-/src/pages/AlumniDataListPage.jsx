@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { allCohorts, getBatchNo } from '../data/cohortRecords';
-import { fetchBatchAlumniFromApi } from '../api/batchAlumniApi';
+import { fetchBatchAlumniFromApi } from '../Api/batchAlumniApi';
 
 // ✅ Helper: Extract only the numeric year from strings like "Prior to 1985", "Diploma 1988-91", "2020"
 const extractYear = (yearStr) => {
