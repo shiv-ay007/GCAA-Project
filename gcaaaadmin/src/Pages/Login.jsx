@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Mail,
@@ -7,27 +7,49 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
+import adminAuth from '../Api/adminAuthApi'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // If already authenticated, redirect straight to dashboard
+    if (adminAuth.isAuthenticated()) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [navigate])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrorMessage('')
+    setLoading(true)
 
-    console.log({
-      email,
-      password,
-      rememberMe,
-    })
-
-    // Navigate to dashboard
-    navigate('/dashboard')
+    try {
+      const response = await adminAuth.login(email, password)
+      if (response.success) {
+        navigate('/dashboard')
+      } else {
+        setErrorMessage(response.message || 'Invalid email or password.')
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      const msg =
+        err.response?.data?.message ||
+        'Unable to connect to the authentication server. Please verify your connection.'
+      setErrorMessage(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -132,6 +154,14 @@ const Login = () => {
             </p>
           </div>
 
+          {/* Error Message Alert */}
+          {errorMessage && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700 shadow-sm animate-shake">
+              <AlertCircle size={18} className="shrink-0 text-red-600 mt-0.5" />
+              <div className="flex-1 font-medium">{errorMessage}</div>
+            </div>
+          )}
+
           {/* Login form */}
           <form onSubmit={handleSubmit} className="space-y-5 lg:space-y-4">
 
@@ -159,7 +189,8 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-transparent py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                  disabled={loading}
+                  className="w-full bg-transparent py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -188,7 +219,8 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-transparent py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                  disabled={loading}
+                  className="w-full bg-transparent py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400 disabled:opacity-60"
                 />
 
                 <button
@@ -213,6 +245,7 @@ const Login = () => {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={loading}
                   className="h-4 w-4 accent-[#b50928]"
                 />
 
@@ -223,14 +256,23 @@ const Login = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="group flex w-full items-center justify-center gap-3 rounded-lg bg-[#bd0929] px-5 py-3.5 font-semibold text-white shadow-lg shadow-[#bd0929]/15 transition duration-300 hover:bg-[#93001d] active:scale-[0.99]"
+              disabled={loading}
+              className="group flex w-full items-center justify-center gap-3 rounded-lg bg-[#bd0929] px-5 py-3.5 font-semibold text-white shadow-lg shadow-[#bd0929]/15 transition duration-300 hover:bg-[#93001d] active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Sign In to Dashboard
-
-              <ArrowRight
-                size={20}
-                className="transition-transform group-hover:translate-x-1"
-              />
+              {loading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin text-white" />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Dashboard</span>
+                  <ArrowRight
+                    size={20}
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </>
+              )}
             </button>
           </form>
 

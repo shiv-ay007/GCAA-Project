@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Users,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { allCohorts, getBatchNo } from '../data/cohortRecords';
+import { fetchBatchAlumniFromApi } from '../api/batchAlumniApi';
 
 // ✅ Helper: Extract only the numeric year from strings like "Prior to 1985", "Diploma 1988-91", "2020"
 const extractYear = (yearStr) => {
@@ -21,12 +22,32 @@ const extractYear = (yearStr) => {
   const str = yearStr.toString();
   const matches = str.match(/\d{4}/g);
   if (!matches || matches.length === 0) return str;
-  // Agar multiple years hain (jaise "Diploma 1988-91"), toh pehla (start year) return karein
   return matches[0];
 };
 
+// ✅ Responsive columns hook — 1 (mobile), 2 (tablet + desktop)
+const useResponsiveColumns = () => {
+  const getCols = () => {
+    if (typeof window === 'undefined') return 2;
+    if (window.innerWidth >= 768) return 2;
+    return 1;
+  };
+
+  const [cols, setCols] = useState(getCols);
+
+  useEffect(() => {
+    const onResize = () => setCols(getCols());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  return cols;
+};
+
 export const AlumniDataListPage = () => {
-  // Course / Cohort Filter Tabs (from reference master excel sheet)
+  const responsiveCols = useResponsiveColumns();
+
+  // Course / Cohort Filter Tabs
   const cohortTabs = [
     {
       id: 'all',
@@ -67,9 +88,40 @@ export const AlumniDataListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
 
-  // Active Cohort Dataset
+  // Dynamic MongoDB state for live All Batches of GCAAA
+  const [dbRecords, setDbRecords] = useState(null);
+  const [loadingDb, setLoadingDb] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadBatchRecords = async () => {
+      setLoadingDb(true);
+      try {
+        const res = await fetchBatchAlumniFromApi({
+          cohort: activeTab,
+          limit: 'ALL',
+          sortBy: 'sno',
+          order: 'asc',
+        });
+        if (isMounted && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setDbRecords(res.data);
+        }
+      } catch (err) {
+        console.warn('Could not fetch live batch records from DB, using fallback:', err.message);
+      } finally {
+        if (isMounted) setLoadingDb(false);
+      }
+    };
+
+    loadBatchRecords();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab]);
+
+  // Active Cohort Dataset (Prioritize Live DB data if available, fallback to static cohortRecords)
   const currentCohort = allCohorts[activeTab] || allCohorts['all'];
-  const currentRecords = currentCohort.records || [];
+  const currentRecords = (dbRecords && dbRecords.length > 0) ? dbRecords : (currentCohort.records || []);
 
   // Sorted list of unique batch years for active cohort
   const activeBatches = useMemo(() => {
@@ -102,12 +154,10 @@ export const AlumniDataListPage = () => {
   const filteredData = useMemo(() => {
     return currentRecords
       .filter((item) => {
-        // Year filter
         if (selectedYear !== 'ALL' && item.year.toString() !== selectedYear) {
           return false;
         }
 
-        // Search Query (name, year, batch)
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchName = item.name.toLowerCase().includes(q);
@@ -150,7 +200,26 @@ export const AlumniDataListPage = () => {
     return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage, itemsPerPage]);
 
-  // Dynamic pagination range window (e.g. 1 ... 4 5 6 ... 30)
+  // ✅ Distribute paginated data into responsive columns (2 tables per page on desktop)
+  const columnsData = useMemo(() => {
+    const numCols = responsiveCols;
+    const total = paginatedData.length;
+    if (total === 0) return Array.from({ length: numCols }, () => []);
+
+    const baseSize = Math.floor(total / numCols);
+    const remainder = total % numCols;
+    const cols = [];
+    let startIndex = 0;
+
+    for (let i = 0; i < numCols; i++) {
+      const size = baseSize + (i < remainder ? 1 : 0);
+      cols.push(paginatedData.slice(startIndex, startIndex + size));
+      startIndex += size;
+    }
+    return cols;
+  }, [paginatedData, responsiveCols]);
+
+  // Dynamic pagination range window
   const paginationRange = useMemo(() => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -166,7 +235,7 @@ export const AlumniDataListPage = () => {
     return range;
   }, [currentPage, totalPages]);
 
-  // Export to CSV helper (Sr No, Year, Name) — Year only numeric
+  // Export to CSV helper
   const handleExportCSV = () => {
     if (!filteredData.length) return;
     const headers = ['Sr No.', 'Year', 'Name'];
@@ -183,6 +252,22 @@ export const AlumniDataListPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // ✅ Helper to check if record is deceased
+  const isDeceasedRecord = (alumnus) => {
+    return (
+      alumnus.deceased ||
+      alumnus.name.toLowerCase().startsWith('late ') ||
+      alumnus.name.includes('[Deceased]') ||
+      alumnus.email?.toLowerCase().includes('no more with us')
+    );
+  };
+
+  // ✅ Shared class string for inputs (avoids repetition)
+  const numFont = {
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontVariantNumeric: 'lining-nums tabular-nums',
   };
 
   return (
@@ -208,14 +293,14 @@ export const AlumniDataListPage = () => {
               <button
                 onClick={handleExportCSV}
                 disabled={filteredData.length === 0}
-                className="w-full sm:w-auto bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-200 font-bold text-xs uppercase px-4 py-2.5 rounded-lg transition-colors border border-neutral-700 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full sm:w-auto bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-200 font-bold text-xs uppercase px-4 py-2.5 rounded-lg transition-colors border border-neutral-700 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export CSV ({filteredData.length})</span>
               </button>
               <Link
                 to="/registration"
-                className="w-full sm:w-auto bg-[#E31E24] hover:bg-red-700 text-white font-bold text-xs uppercase px-4 py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-[#E31E24] hover:bg-red-700 text-white font-bold text-xs uppercase px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Users className="w-3.5 h-3.5" />
                 <span>Register New Alumni</span>
@@ -225,8 +310,8 @@ export const AlumniDataListPage = () => {
         </div>
       </div>
 
-      {/* 2. Top Cohort Filter Strip (Matching master excel tabs) */}
-      <div className="bg-[#0B0F19] border-b-2 border-[#1E293B] shadow-lg sticky top-[56px] lg:top-[108px] z-30">
+      {/* 2. Cohort Filter Strip — NOT sticky (prevents overlap with navbar) */}
+      <div className="bg-[#0B0F19] border-b-2 border-[#1E293B] shadow-lg relative z-20">
         <div className="max-w-[1400px] mx-auto px-6 sm:px-10 md:px-14 lg:px-16">
           <div className="flex items-center overflow-x-auto no-scrollbar py-2 touch-pan-x">
             <div className="flex items-stretch border-l border-neutral-800 shrink-0">
@@ -265,9 +350,9 @@ export const AlumniDataListPage = () => {
 
       {/* Main Content Area */}
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 md:px-14 lg:px-16 pt-6">
-        
-        {/* Cohort Header & Batch Quick Filter Card */}
-        <div className="bg-white rounded-xl border border-neutral-200/90 p-4 sm:p-5 shadow-xs mb-6">
+        {/* Cohort Header & Filters Card */}
+        <div className="bg-white rounded-xl border border-neutral-200/90 p-4 sm:p-5 shadow-sm mb-6">
+          {/* Title row */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 pb-4 border-b border-neutral-100">
             <div>
               <h2 className="text-sm sm:text-base font-bold text-neutral-900 flex items-center gap-2">
@@ -280,9 +365,8 @@ export const AlumniDataListPage = () => {
             </div>
           </div>
 
-          {/* Filter Controls: Search, Year Dropdown, Sort, Reset */}
+          {/* Filter Controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
-            {/* Search */}
             <div className="sm:col-span-2 lg:col-span-5 relative">
               <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -292,13 +376,12 @@ export const AlumniDataListPage = () => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
+                style={numFont}
                 placeholder="Search alumni name or batch year..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm focus:outline-hidden focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-white"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-white"
               />
             </div>
 
-            {/* Year Dropdown */}
             <div className="sm:col-span-1 lg:col-span-3">
               <div className="relative">
                 <Calendar className="w-4 h-4 text-red-600 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -308,21 +391,12 @@ export const AlumniDataListPage = () => {
                     setSelectedYear(e.target.value);
                     setCurrentPage(1);
                   }}
-                  style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-hidden focus:border-red-600 bg-white appearance-none cursor-pointer"
+                  style={numFont}
+                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-red-600 bg-white appearance-none cursor-pointer"
                 >
-                  <option
-                    value="ALL"
-                    style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                  >
-                    All Batches ({currentRecords.length} records)
-                  </option>
+                  <option value="ALL">All Batches ({currentRecords.length} records)</option>
                   {activeBatches.map((yr) => (
-                    <option
-                      key={yr}
-                      value={yr}
-                      style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                    >
+                    <option key={yr} value={yr}>
                       {extractYear(yr)} ({yr}) — {batchStats[yr] || 0} alumni
                     </option>
                   ))}
@@ -331,26 +405,24 @@ export const AlumniDataListPage = () => {
               </div>
             </div>
 
-            {/* Sort By Dropdown */}
             <div className="sm:col-span-1 lg:col-span-3">
               <div className="relative">
                 <ArrowUpDown className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-hidden focus:border-red-600 bg-white appearance-none cursor-pointer"
+                  style={numFont}
+                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-red-600 bg-white appearance-none cursor-pointer"
                 >
-                  <option value="year-asc" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Year: Oldest First</option>
-                  <option value="year-desc" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Year: Recent First</option>
-                  <option value="name-asc" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Name: A to Z</option>
-                  <option value="name-desc" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Name: Z to A</option>
+                  <option value="year-asc">Year: Oldest First</option>
+                  <option value="year-desc">Year: Recent First</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            {/* Reset Filters */}
             <div className="sm:col-span-2 lg:col-span-1 flex justify-end">
               <button
                 onClick={() => {
@@ -386,97 +458,12 @@ export const AlumniDataListPage = () => {
               <strong className="text-neutral-900 font-bold">{currentRecords.length}</strong> alumni
             </div>
           </div>
-        </div>
 
-        {/* 3. Alumni Data Table — Year column shows ONLY numeric year */}
-        <div className="bg-white rounded-xl border border-neutral-200/90 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full table-fixed min-w-[540px] text-xs sm:text-sm border-collapse">
-              <thead className="bg-[#111827] text-white uppercase font-black text-[11px] tracking-wider border-b border-neutral-800">
-                <tr>
-                  <th className="py-4 px-6 sm:px-10 w-1/3 text-left">SR NO.</th>
-                  <th className="py-4 px-6 sm:px-10 w-1/3 text-left">YEAR</th>
-                  <th className="py-4 px-6 sm:px-10 w-1/3 text-left">NAME</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 text-neutral-800">
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((alumnus, idx) => {
-                    const globalIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                    const isDeceased = alumnus.deceased || alumnus.name.toLowerCase().startsWith('late ') || alumnus.name.includes('[Deceased]') || alumnus.email?.toLowerCase().includes('no more with us');
-                    const displayYear = extractYear(alumnus.year);
-
-                    return (
-                      <tr
-                        key={`${activeTab}-${alumnus.year}-${alumnus.sno}-${alumnus.name}-${idx}`}
-                        className={`hover:bg-red-50/40 transition-colors ${
-                          isDeceased ? 'bg-neutral-50/70' : ''
-                        }`}
-                      >
-                        {/* Sr No. — Starting (Left) */}
-                        <td
-                          style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                          className="py-3.5 px-6 sm:px-10 text-left font-bold text-neutral-400"
-                        >
-                          {globalIndex}
-                        </td>
-
-                        {/* Year — Middle (Left-aligned in 1/3 for equal gapping) */}
-                        <td className="py-3.5 px-6 sm:px-10 text-left whitespace-nowrap">
-                          <span
-                            style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
-                            className="inline-flex items-center justify-center px-3 py-1 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900"
-                          >
-                            {displayYear}
-                          </span>
-                        </td>
-
-                        {/* Name — Ending (Left-aligned in 1/3 for equal gapping) */}
-                        <td className="py-3.5 px-6 sm:px-10 font-bold text-neutral-900 text-left">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs ${
-                                isDeceased
-                                  ? 'bg-neutral-200 text-neutral-700 border border-neutral-300'
-                                  : 'bg-red-100 text-red-700'
-                              }`}
-                            >
-                              {alumnus.name.replace(/^Late\s+/i, '').replace(/Prof\.|Dr\.|Ar\.|\[Deceased\]/gi, '').trim().charAt(0) || 'A'}
-                            </div>
-                            <div className="flex flex-col min-w-0 text-left">
-                              <span className={`text-xs sm:text-sm uppercase tracking-tight ${isDeceased ? 'text-neutral-800 font-extrabold' : 'text-neutral-900'}`}>
-                                {alumnus.name}
-                              </span>
-                              {isDeceased && (
-                                <span className="text-[10px] font-semibold text-neutral-500 italic">
-                                  No more with us (In Memoriam)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="py-12 text-center text-neutral-500">
-                      <AlertCircle className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
-                      <p className="font-semibold text-sm">No alumni records found matching the criteria.</p>
-                      <p className="text-xs text-neutral-400 mt-1">
-                        Try changing the batch year filter or clear the search box.
-                      </p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination / Item per page bar */}
-          {totalItems > 0 && (
-            <div className="p-4 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-neutral-50/80 text-xs text-neutral-600">
-              <div className="flex items-center gap-2">
+          {/* ✅ PAGINATION BAR — Moved Here (Top-Right Corner) */}
+          {totalItems > 0 && totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 mt-3 border-t border-neutral-100">
+              {/* Left: Show per page + showing info */}
+              <div className="flex items-center gap-2 flex-wrap justify-center text-xs text-neutral-600">
                 <span>Show per page:</span>
                 <select
                   value={itemsPerPage}
@@ -484,70 +471,178 @@ export const AlumniDataListPage = () => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}
+                  style={numFont}
                   className="border border-neutral-300 rounded px-2 py-1 bg-white font-semibold text-neutral-800 cursor-pointer"
                 >
-                  <option value={25} style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>25</option>
-                  <option value={50} style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>50</option>
-                  <option value={100} style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>100</option>
-                  <option value={200} style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>200</option>
-                  <option value={500} style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>500</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={200}>200</option>
+                  <option value={500}>500</option>
                 </select>
                 <span className="text-neutral-400">|</span>
-                <span style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontVariantNumeric: 'lining-nums tabular-nums' }}>
+                <span style={numFont}>
                   Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} to{' '}
                   {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} alumni
                 </span>
               </div>
 
-              {totalPages > 1 && (
-                <div className="flex flex-wrap items-center justify-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
-                  >
-                    Prev
-                  </button>
-                  {paginationRange.map((p, idx) => {
-                    if (p === '...') {
-                      return (
-                        <span key={`ellipsis-${idx}`} className="px-1.5 text-neutral-400">
-                          ...
-                        </span>
-                      );
-                    }
+              {/* Right: Pagination Controls */}
+              <div className="flex flex-wrap items-center justify-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
+                >
+                  Prev
+                </button>
+                {paginationRange.map((p, idx) => {
+                  if (p === '...') {
                     return (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className={`w-7 h-7 rounded text-xs font-bold transition-colors cursor-pointer ${
-                          currentPage === p
-                            ? 'bg-neutral-900 text-white'
-                            : 'border border-neutral-300 hover:bg-neutral-100 text-neutral-700'
-                        }`}
-                      >
-                        {p}
-                      </button>
+                      <span key={`ellipsis-${idx}`} className="px-1.5 text-neutral-400 text-xs">
+                        ...
+                      </span>
                     );
-                  })}
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
-                  >
-                    Next
-                  </button>
+                  }
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-7 h-7 rounded text-xs font-bold transition-colors cursor-pointer ${
+                        currentPage === p
+                          ? 'bg-neutral-900 text-white'
+                          : 'border border-neutral-300 hover:bg-neutral-100 text-neutral-700'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Alumni Data — Responsive Multi-Column Tables (2 per page on desktop) */}
+        <div className="bg-white rounded-xl border border-neutral-200/90 shadow-sm overflow-hidden">
+          {paginatedData.length > 0 ? (
+            <div
+              className={`grid gap-0 ${
+                responsiveCols === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'
+              }`}
+            >
+              {columnsData.map((colItems, colIdx) => (
+                <div
+                  key={`col-${responsiveCols}-${colIdx}`}
+                  className={`overflow-x-auto ${
+                    responsiveCols === 2 && colIdx === 0 ? 'md:border-r md:border-neutral-200' : ''
+                  }`}
+                >
+                  <table className="w-full table-fixed min-w-[500px] text-xs sm:text-sm border-collapse">
+                    <thead className="bg-[#111827] text-white uppercase font-black text-[11px] tracking-wider border-b border-neutral-800">
+                      <tr>
+                        <th className="py-3.5 px-4 sm:px-6 w-[15%] text-left">SR NO.</th>
+                        <th className="py-3.5 px-4 sm:px-6 w-[25%] text-left">YEAR</th>
+                        <th className="py-3.5 px-4 sm:px-6 w-[60%] text-left">NAME</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200 text-neutral-800">
+                      {colItems.map((alumnus, idx) => {
+                        // ✅ Global Sr.No across all columns (continuous numbering)
+                        const globalIndex =
+                          (currentPage - 1) * itemsPerPage +
+                          (colIdx === 0 ? 0 : columnsData[0].length) +
+                          idx +
+                          1;
+
+                        const isDeceased = isDeceasedRecord(alumnus);
+                        const displayYear = extractYear(alumnus.year);
+
+                        return (
+                          <tr
+                            key={`${activeTab}-${colIdx}-${alumnus.sno}-${idx}`}
+                            className={`hover:bg-red-50/40 transition-colors ${
+                              isDeceased ? 'bg-neutral-50/70' : ''
+                            }`}
+                          >
+                            <td
+                              style={numFont}
+                              className="py-2.5 px-4 sm:px-6 text-left font-bold text-neutral-400"
+                            >
+                              {globalIndex}
+                            </td>
+
+                            <td className="py-2.5 px-4 sm:px-6 text-left whitespace-nowrap">
+                              <span
+                                style={numFont}
+                                className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900"
+                              >
+                                {displayYear}
+                              </span>
+                            </td>
+
+                            <td className="py-2.5 px-4 sm:px-6 font-bold text-neutral-900 text-left">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  className={`w-7 h-7 rounded-full font-black text-[11px] flex items-center justify-center shrink-0 uppercase ${
+                                    isDeceased
+                                      ? 'bg-neutral-200 text-neutral-700 border border-neutral-300'
+                                      : 'bg-red-100 text-red-700'
+                                  }`}
+                                >
+                                  {alumnus.name
+                                    .replace(/^Late\s+/i, '')
+                                    .replace(/Prof\.|Dr\.|Ar\.|\[Deceased\]/gi, '')
+                                    .trim()
+                                    .charAt(0) || 'A'}
+                                </div>
+                                <div className="flex flex-col min-w-0 text-left">
+                                  <span
+                                    className={`text-xs sm:text-sm uppercase tracking-tight leading-tight ${
+                                      isDeceased ? 'text-neutral-800 font-extrabold' : 'text-neutral-900'
+                                    }`}
+                                  >
+                                    {alumnus.name}
+                                  </span>
+                                  {isDeceased && (
+                                    <span className="text-[10px] font-semibold text-neutral-500 italic">
+                                      No more with us (In Memoriam)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center text-neutral-500">
+              <AlertCircle className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+              <p className="font-semibold text-sm">No alumni records found matching the criteria.</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Try changing the batch year filter or clear the search box.
+              </p>
             </div>
           )}
 
-          {/* Bottom Status Note */}
+          {/* Bottom Status Note (pagination has moved to top) */}
           <div className="p-3.5 bg-neutral-900 text-neutral-300 text-center text-xs flex items-center justify-center gap-2">
             <HeartHandshake className="w-4 h-4 text-red-500 shrink-0" />
             <span>
-              <strong>{currentRecords.length} Alumni Records</strong> loaded for <strong>{currentCohort.course}</strong> from official Master Directory.
+              <strong>{currentRecords.length} Alumni Records</strong> loaded for{' '}
+              <strong>{currentCohort.course}</strong> from official Master Directory.
             </span>
           </div>
         </div>

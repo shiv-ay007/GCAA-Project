@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Phone, Clock, ArrowRight, Heart } from 'lucide-react';
+import { MapPin, Mail, Phone, Clock, ArrowRight } from 'lucide-react';
 import logoImg from '@/assets/images/logo.png';
+// ✅ Apna CodeCrafter logo yahan import karo (path apne folder ke hisaab se adjust karo)
+import codeCrafterLogo from '@/assets/images/image.png';
 
 export const Footer = () => {
   const [subscribedEmail, setSubscribedEmail] = useState('');
@@ -17,7 +19,6 @@ export const Footer = () => {
       }, 4000);
     }
   };
-  
 
   return (
     <footer className="w-full bg-black text-white border-t border-neutral-900 mt-auto">
@@ -59,7 +60,6 @@ export const Footer = () => {
               GCAAA unites seasoned architects, graduates, and faculty under one collaborative umbrella — fostering brotherhood, design excellence, and our timeless campus heritage.
             </p>
 
-            {/* Affiliation Badge */}
             <div className="p-3 rounded-lg bg-neutral-950 border border-neutral-900 text-neutral-400 text-sm space-y-1.5">
               <p className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
@@ -70,7 +70,6 @@ export const Footer = () => {
               </p>
             </div>
 
-            {/* Social Media */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2.5">
                 Connect On Social Media
@@ -184,27 +183,31 @@ export const Footer = () => {
       </div>
 
       {/* ========================================================
-          BOTTOM COPYRIGHT BAR
+          BOTTOM COPYRIGHT BAR — SIMPLIFIED
       ======================================================== */}
-      <div className="border-t border-neutral-900 bg-neutral-950/90 py-5 text-sm text-neutral-500">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-center md:text-left">
-            &copy; {new Date().getFullYear()} <strong>Government College of Architecture Alumni Association (GCAAA)</strong>. All Rights Reserved.
+      <div className="border-t border-neutral-900 bg-neutral-950/90 py-5">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-4">
+
+          {/* LEFT: Copyright text */}
+          <p className="text-xs sm:text-sm text-neutral-400 text-center sm:text-left leading-relaxed">
+            © {new Date().getFullYear()} Government College of Architecture Alumni Association. All Rights Reserved.
           </p>
 
-          <p className="flex items-center gap-1.5 text-neutral-400 text-center">
-            <span>Preserving Architecture &amp; Heritage with</span>
-            <Heart className="w-4 h-4 text-red-600 fill-red-600 inline" />
-            <span>in Lucknow</span>
-          </p>
+          {/* RIGHT: CodeCrafter logo */}
+          <a
+            href="https://codecrafter.in"  // 👈 apna CodeCrafter website URL yahan daalo
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="CodeCrafter"
+            className="shrink-0 opacity-80 hover:opacity-100 transition-opacity"
+          >
+            <img
+              src={codeCrafterLogo}
+              alt="CodeCrafter"
+              className="h-8 sm:h-9 w-auto object-contain"
+            />
+          </a>
 
-          <div className="flex items-center gap-3 text-xs text-neutral-500">
-            <Link to="/about" className="hover:text-neutral-300 transition-colors">About</Link>
-            <span>•</span>
-            <Link to="/contact" className="hover:text-neutral-300 transition-colors">Directory</Link>
-            <span>•</span>
-            <Link to="/events" className="hover:text-neutral-300 transition-colors">GBM 2026</Link>
-          </div>
         </div>
       </div>
     </footer>

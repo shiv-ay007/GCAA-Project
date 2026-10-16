@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, X, ArrowLeft, ChevronLeft, ChevronRight, FileSpreadsheet, Users } from 'lucide-react';
 import { allCohorts, getMembershipNo } from '../data/cohortRecords';
+import { fetchRegisteredMembersFromApi } from '../api/registeredMemberApi';
 
 // Helper to format names cleanly (Title Case, remove deceased tags)
 const cleanAndFormatName = (str = '') => {
@@ -49,10 +50,25 @@ export const RegisteredMembersPage = () => {
   const responsiveCols = useResponsiveColumns();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(150); // 150 gives 50 rows per column across 3 columns
 
-  // 1. Build master sorted list of all registered members across all cohorts
+  // Debounce search query to prevent excessive API requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Dynamic MongoDB state
+  const [dbMembers, setDbMembers] = useState(null);
+  const [dbTotal, setDbTotal] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isLiveDb, setIsLiveDb] = useState(false);
+
+  // 1. Build master sorted list of all registered members across all cohorts (as fallback / baseline)
   const masterMembers = useMemo(() => {
     const list = [];
     const seen = new Set();
@@ -88,9 +104,44 @@ export const RegisteredMembersPage = () => {
     }));
   }, []);
 
-  // 2. Filter members based on Search Query (Name or Membership No)
+  // 2. Fetch from Backend MongoDB API using Axios
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDb = async () => {
+      setLoading(true);
+      try {
+        const res = await fetchRegisteredMembersFromApi({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: debouncedSearch,
+          view: 'public',
+          sortBy: 'createdAt',
+          order: 'desc',
+        });
+        if (isMounted && res.success) {
+          setDbMembers(res.data);
+          setDbTotal(res.total);
+          setIsLiveDb(true);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setIsLiveDb(false);
+          setDbMembers(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchDb();
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedSearch, currentPage, itemsPerPage]);
+
+  // 3. Filter fallback members if DB not reachable
   const filteredMembers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = debouncedSearch.trim().toLowerCase();
     if (!q) return masterMembers;
 
     return masterMembers.filter((item) => {
@@ -98,26 +149,34 @@ export const RegisteredMembersPage = () => {
       const matchMem = (item.membershipNo || '').toLowerCase().includes(q);
       return matchName || matchMem;
     });
-  }, [masterMembers, searchQuery]);
+  }, [masterMembers, debouncedSearch]);
 
-  // Reset pagination when search query changes
+  // Reset pagination when debounced search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [debouncedSearch]);
 
-  // 3. Paginate the items (or show all if itemsPerPage === 'ALL')
-  const totalFiltered = filteredMembers.length;
+  // 4. Determine total count & pagination
+  const totalFiltered = isLiveDb && dbTotal !== null ? dbTotal : filteredMembers.length;
   const isAll = itemsPerPage === 'ALL';
   const effectiveLimit = isAll ? totalFiltered : Number(itemsPerPage);
   const totalPages = isAll ? 1 : Math.ceil(totalFiltered / effectiveLimit) || 1;
 
+  // 5. Slice of items for display
   const currentSlice = useMemo(() => {
+    if (isLiveDb && dbMembers) {
+      return dbMembers.map((m, idx) => ({
+        ...m,
+        sno: m.sno || m.displaySno || (currentPage - 1) * (Number(itemsPerPage) || 150) + idx + 1,
+        uniqueKey: m._id || `${m.sno}-${m.membershipNo}`,
+      }));
+    }
     if (isAll) return filteredMembers;
     const start = (currentPage - 1) * effectiveLimit;
     return filteredMembers.slice(start, start + effectiveLimit);
-  }, [filteredMembers, isAll, currentPage, effectiveLimit]);
+  }, [isLiveDb, dbMembers, filteredMembers, isAll, currentPage, effectiveLimit, itemsPerPage]);
 
-  // 4. Distribute currentSlice across responsive columns (3 on desktop, 2 on tablet, 1 on mobile)
+  // 6. Distribute currentSlice across responsive columns (3 on desktop, 2 on tablet, 1 on mobile)
   const columnsData = useMemo(() => {
     const numCols = responsiveCols;
     const cols = [];
@@ -172,8 +231,8 @@ export const RegisteredMembersPage = () => {
       </div>
 
       {/* 2. Main Content Card Container (Matching Sample Image Layout & Visuals) */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-6 sm:py-8">
-        <div className="bg-white rounded-xl border border-neutral-200/90 shadow-sm p-4 sm:p-6 md:p-8">
+      <div className="max-w-[1400px] mx-auto px-2 sm:px-8 lg:px-14 py-4 sm:py-8">
+        <div className="bg-white rounded-xl border border-neutral-200/90 shadow-sm p-3 sm:p-6 md:p-8">
           {/* Header Title (Matching 2nd Photo: "Registered Members") */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-2xl sm:text-3xl font-medium text-neutral-700 tracking-tight">
@@ -209,7 +268,7 @@ export const RegisteredMembersPage = () => {
             )}
           </div>
 
-          {/* Multi-Column Tables (Exact equal widths across all 3 tables with table-fixed & colgroup) */}
+          {/* Multi-Column Tables with Responsive Column Widths */}
           {totalFiltered > 0 ? (
             <div
               className={`grid gap-4 sm:gap-6 ${
@@ -225,64 +284,67 @@ export const RegisteredMembersPage = () => {
                   key={`col-${colIdx}`}
                   className="bg-white rounded-lg border border-neutral-200/90 overflow-hidden shadow-2xs"
                 >
-                  <table className="w-full table-fixed border-collapse text-xs sm:text-sm">
-                    {/* Fixed column widths so every single table is identical down to the sub-pixel */}
-                    <colgroup>
-                      <col style={{ width: '15%' }} />
-                      <col style={{ width: '53%' }} />
-                      <col style={{ width: '32%' }} />
-                    </colgroup>
-                    <thead>
-                      <tr className="bg-black text-white font-bold border-b border-neutral-700">
-                        <th className="py-2.5 px-3 text-left font-bold truncate">S.No</th>
-                        <th className="py-2.5 px-3 text-left font-bold truncate">Name</th>
-                        <th className="py-2.5 px-3 text-left font-bold truncate whitespace-nowrap">
-                          Membership No
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-100">
-                      {colItems.map((item, rowIdx) => (
-                        <tr
-                          key={item.uniqueKey}
-                          className={`transition-colors  hover:bg-red-100 ${
-                            rowIdx % 2 === 0 ? 'bg-white' : 'bg-neutral-50/80'
-                          }`}
-                        >
-                          {/* S.No */}
-                          <td
-                            style={{
-                              fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                              fontVariantNumeric: 'lining-nums tabular-nums',
-                            }}
-                            className="py-2.5 px-3 text-neutral-700 font-medium align-middle truncate"
-                          >
-                            {item.sno}
-                          </td>
-
-                          {/* Name */}
-                          <td
-                            className="py-2.5 px-3 text-neutral-900 font-medium align-middle truncate"
-                            title={item.name}
-                          >
-                            {item.name}
-                          </td>
-
-                          {/* Membership No */}
-                          <td
-                            style={{
-                              fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                              fontVariantNumeric: 'lining-nums tabular-nums',
-                            }}
-                            className="py-2.5 px-3 text-neutral-800 font-normal align-middle truncate whitespace-nowrap"
-                            title={item.membershipNo}
-                          >
-                            {item.membershipNo}
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-xs sm:text-sm">
+                      <colgroup>
+                        <col className="w-12 sm:w-16" />
+                        <col className="w-auto" />
+                        <col className="w-28 sm:w-36" />
+                      </colgroup>
+                      <thead>
+                        <tr className="bg-black text-white font-bold border-b border-neutral-700">
+                          <th className="py-2.5 px-2 sm:px-3 text-center sm:text-left font-bold text-xs sm:text-sm whitespace-nowrap">
+                            S.No
+                          </th>
+                          <th className="py-2.5 px-2 sm:px-3 text-left font-bold text-xs sm:text-sm">
+                            Name
+                          </th>
+                          <th className="py-2.5 px-2 sm:px-3 text-right sm:text-left font-bold text-xs sm:text-sm whitespace-nowrap">
+                            Membership No
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {colItems.map((item, rowIdx) => (
+                          <tr
+                            key={item.uniqueKey}
+                            className={`transition-colors hover:bg-red-50 ${
+                              rowIdx % 2 === 0 ? 'bg-white' : 'bg-neutral-50/80'
+                            }`}
+                          >
+                            {/* S.No */}
+                            <td
+                              style={{
+                                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                                fontVariantNumeric: 'lining-nums tabular-nums',
+                              }}
+                              className="py-2 px-2 sm:px-3 text-neutral-600 font-medium align-middle text-center sm:text-left whitespace-nowrap text-xs sm:text-sm"
+                            >
+                              {item.sno}
+                            </td>
+
+                            {/* Name */}
+                            <td
+                              className="py-2 px-2 sm:px-3 text-neutral-900 font-semibold align-middle text-left text-xs sm:text-sm break-words leading-snug"
+                            >
+                              {item.name}
+                            </td>
+
+                            {/* Membership No */}
+                            <td
+                              style={{
+                                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                                fontVariantNumeric: 'lining-nums tabular-nums',
+                              }}
+                              className="py-2 px-2 sm:px-3 text-neutral-800 font-medium align-middle text-right sm:text-left whitespace-nowrap text-[11px] sm:text-xs"
+                            >
+                              {item.membershipNo}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ))}
             </div>

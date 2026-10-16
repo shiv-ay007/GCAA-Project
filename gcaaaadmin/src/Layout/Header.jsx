@@ -7,11 +7,24 @@ import {
   UserRound,
   LogOut,
 } from 'lucide-react'
+import adminAuth from '../Api/adminAuthApi'
 
 const Header = ({ onMenuClick, sidebarOpen }) => {
   const [profileOpen, setProfileOpen] = useState(false)
+  const [adminUser, setAdminUser] = useState(() => adminAuth.getStoredAdmin() || {})
   const dropdownRef = useRef(null)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Sync current admin details from DB if authenticated
+    if (adminAuth.isAuthenticated()) {
+      adminAuth.getMe()
+        .then((res) => {
+          if (res?.admin) setAdminUser(res.admin)
+        })
+        .catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -32,8 +45,23 @@ const Header = ({ onMenuClick, sidebarOpen }) => {
 
   const handleLogout = () => {
     setProfileOpen(false)
-    navigate('/')
+    adminAuth.logout()
+    navigate('/login')
   }
+
+  const displayName = adminUser.name || 'Admin'
+  const displayRole = adminUser.designation || 'Administrator'
+  const displayEmail = adminUser.email || 'admin@gcaaa.org'
+  const displayInitials =
+    adminUser.avatarInitials ||
+    displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() ||
+    'A'
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200 bg-white shadow-sm">
@@ -53,7 +81,7 @@ const Header = ({ onMenuClick, sidebarOpen }) => {
 
           <div>
             <h2 className="font-serif text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
-              Welcome back, <span className="text-[#800018]">Admin</span>
+              Welcome back, <span className="text-[#800018]">{displayName}</span>
             </h2>
             <p className="text-[11px] font-medium text-gray-400 hidden sm:block">
               Government College of Architecture Alumni Association
@@ -70,16 +98,16 @@ const Header = ({ onMenuClick, sidebarOpen }) => {
             className="flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition hover:bg-gray-50 sm:gap-3 sm:px-2"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#800018] text-sm font-semibold text-white shadow-sm ring-2 ring-[#e5c66b]/80">
-              A
+              {displayInitials}
             </div>
 
             <div className="hidden text-left sm:block">
               <p className="text-sm font-semibold leading-tight text-gray-800">
-                Admin
+                {displayName}
               </p>
 
               <p className="text-xs text-gray-500">
-                Administrator
+                {displayRole}
               </p>
             </div>
 
@@ -96,11 +124,11 @@ const Header = ({ onMenuClick, sidebarOpen }) => {
             <div className="absolute right-0 top-14 z-50 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white py-2 shadow-2xl">
               <div className="border-b border-gray-100 bg-[#faf9f6] px-4 py-3">
                 <p className="text-sm font-semibold text-gray-800">
-                  Administrator
+                  {displayName}
                 </p>
 
                 <p className="mt-0.5 text-xs text-gray-500">
-                  admin@gcaaa.org
+                  {displayEmail}
                 </p>
               </div>
 
