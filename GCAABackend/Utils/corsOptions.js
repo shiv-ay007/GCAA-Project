@@ -22,6 +22,7 @@ const corsOptions = {
     const isAllowed =
       allowedOrigins.includes(origin) ||
       /\.vercel\.app$/.test(origin) ||
+      /\.onrender\.com$/.test(origin) ||
       origin.includes('localhost');
 
     if (isAllowed) {
