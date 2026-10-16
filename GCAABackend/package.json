@@ -5,12 +5,12 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "Server.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon Server.js",
+    "dev": "nodemon server.js",
     "build": "echo 'No build step required for Node backend'",
-    "start": "node Server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
