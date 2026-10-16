@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 70" fill="none">
+  <g transform="translate(10, 8)">
+    <!-- Architectural Compass / Edifice Emblem -->
+    <path d="M 26 4 L 4 52 L 14 52 L 26 22 L 38 52 L 48 52 Z" fill="#9C7723"/>
+    <circle cx="26" cy="18" r="5" fill="#1C1B1B"/>
+    <path d="M 12 35 L 40 35" stroke="#1C1B1B" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 26 22 L 26 52" stroke="#C59B3F" stroke-width="2.5"/>
+  </g>
+  <g transform="translate(68, 10)">
+    <text x="0" y="20" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="22" fill="#111827" letter-spacing="1">ARCHITECTS</text>
+    <text x="0" y="37" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="16" fill="#9C7723" letter-spacing="1.2">ASSOCIATION</text>
+    <text x="0" y="50" font-family="Arial, sans-serif" font-weight="800" font-size="10.5" fill="#4B5563" letter-spacing="1.5">HONORARY PARTNER</text>
+  </g>
+</svg>

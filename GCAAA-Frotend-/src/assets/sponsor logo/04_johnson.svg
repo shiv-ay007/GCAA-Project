@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 68" fill="none">
+  <!-- Square Emblem -->
+  <g transform="translate(6, 12)">
+    <rect x="0" y="0" width="44" height="44" rx="2" fill="#1C1B1B"/>
+    <rect x="6.5" y="6.5" width="31" height="31" rx="1" fill="#E31E24"/>
+    <rect x="17" y="17" width="10" height="10" fill="#FFFFFF"/>
+  </g>
+  <!-- Wordmark -->
+  <g transform="translate(58, 12)">
+    <text x="0" y="24" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="28" fill="#1C1B1B" letter-spacing="1">JOHNSON<tspan font-size="12" dy="-12">®</tspan></text>
+    <line x1="0" y1="31" x2="175" y2="31" stroke="#E31E24" stroke-width="2.5"/>
+    <text x="0" y="44" font-family="'Georgia', serif" font-style="italic" font-weight="bold" font-size="12.5" fill="#333333" letter-spacing="0.5">Not just tiles, Lifestyles.</text>
+  </g>
+</svg>

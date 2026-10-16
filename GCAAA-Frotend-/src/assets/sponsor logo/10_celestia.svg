@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 70" fill="none">
+  <defs>
+    <linearGradient id="goldCel" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#9A772E"/>
+      <stop offset="50%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#F3E5AB"/>
+    </linearGradient>
+  </defs>
+  <!-- Architectural Silhouette -->
+  <g transform="translate(10, 6)">
+    <path d="M 6 18 L 6 52 M 12 14 L 12 52 M 18 10 L 18 52 M 24 6 L 24 52 M 30 12 L 30 52 M 36 18 L 36 52" stroke="url(#goldCel)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="2" y1="54" x2="40" y2="54" stroke="url(#goldCel)" stroke-width="2.5"/>
+    <!-- Pinnacle Star -->
+    <polygon points="24,1 26,5 30,5 27,8 28,12 24,9 20,12 21,8 18,5 22,5" fill="url(#goldCel)"/>
+  </g>
+  <g transform="translate(58, 8)">
+    <text x="0" y="22" font-family="'Cinzel', 'Times New Roman', serif" font-weight="900" font-size="25" fill="#8C6D23" letter-spacing="2">CELESTIA</text>
+    <text x="0" y="38" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="13" fill="#4A3B12" letter-spacing="1">LUXURY RESIDENCES</text>
+    <text x="0" y="50" font-family="Arial, sans-serif" font-weight="800" font-size="10" fill="#8C6D23" letter-spacing="1.2">A.B. SEN ROAD</text>
+  </g>
+</svg>

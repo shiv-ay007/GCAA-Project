@@ -1,0 +1,102 @@
+import coverDharohar2025 from '@/assets/publications/cover_dharohar_2025.png';
+import coverGbm2019 from '@/assets/publications/cover_gbm_2019.png';
+import coverSouvenir2013 from '@/assets/publications/cover_souvenir_2013.png';
+
+export const publications = [
+  {
+    id: 'dharohar-2025',
+    sectionNumber: '01',
+    edition: '2025 Edition',
+    badge: 'Latest Edition · 2025',
+    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    title: "Dharohar '25 Souvenir & Directory",
+    tagline: 'Tying knots between the past and the future',
+    description:
+      'The official commemorative Souvenir of GCAAA released during the 2025 General Body Meeting and grand Dharohar reunion. An extensive compendium documenting alumni cohorts, visionary presidential messages, institutional developments at FOAP-AKTU, and the thriving legacy of Lucknow architects.',
+    coverImg: coverDharohar2025,
+    pages: 168,
+    fileSize: '186 MB',
+    pdfUrl: '/publications/dharohar_all_2025_pdf.pdf',
+    downloadFilename: 'GCAAA_Dharohar_2025_Souvenir.pdf',
+    year: '2025',
+    publisher: 'Alumni Association, Government College of Architecture Lucknow (GCAAA)',
+    theme: 'red',
+    highlights: [
+      'Presidential & Patron addresses from eminent architectural leaders',
+      'Comprehensive alumni directory roll and batchwise rosters',
+      
+      'Photo gallery archives from campus life to the grand Dharohar stage',
+      'Executive committee reports and strategic roadmaps for GCAAA',
+    ],
+    sectionsCovered: [
+      { title: 'Executive Messages', desc: 'Patron, President, and General Secretary communications' },
+      { title: 'Alumni Roll & Directory', desc: 'Contact details, practice firms, and batch cohorts' },
+      { title: 'Memoirs & Re-Unions', desc: 'Reflections and photographic timeline of campus gatherings' },
+      { title: 'Design & Practice', desc: 'Showcase of distinguished architectural projects' },
+    ],
+  },
+  {
+    id: 'dharohar-2019',
+    sectionNumber: '02',
+    edition: '2019 Edition',
+    badge: 'Silver Jubilee Special · 2019',
+    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+    title: 'Dharohar 2019 — 5th GBM Souvenir',
+    tagline: 'Tying knots between the past and the future...',
+    description:
+      'Special Silver Jubilee commemorative edition published on the occasion of the 5th Annual General Body Meeting (GBM) 2019. Dedicated to the Batch of 1994 on celebrating 25 glorious years in architectural practice, leadership, and public service.',
+    coverImg: coverGbm2019,
+    pages: 132,
+    fileSize: '34.8 MB',
+    pdfUrl: '/publications/Final%20suv%202019.pdf',
+    downloadFilename: 'GCAAA_5th_GBM_2019_Souvenir.pdf',
+    year: '2019',
+    publisher: 'Alumni Association, Government College of Architecture Lucknow',
+    theme: 'slate',
+    highlights: [
+      'Silver Jubilee commemoration of Batch 1994 with cohort retrospective',
+      'From the Desk of Patron: Prof. Dr. Vandana Sehgal (Dean, FOA AKTU)',
+      'Messages from President Ar. Mohammad Sabahat & Gen. Sec. Ar. Anupam Mittal',
+      'Voyage Through Old Memories: Photo collages of 1st–4th GBMs (2013 to 2018)',
+      'Distinguished Alumni , architectural essays, and audited accounts',
+    ],
+    sectionsCovered: [
+      { title: 'Silver Jubilee Batch 1994', desc: '25-year practice retrospective & milestone cohort roll' },
+      { title: 'Voyage Through Old Memories', desc: 'Photo archives of 1st, 2nd, 3rd, and 4th GBM meets' },
+      { title: 'Alumni Section', desc: 'Architectural awards, thought leadership & scholarly articles' },
+      { title: 'Association Governance', desc: 'Executive committee list and official financial balances' },
+    ],
+  },
+  {
+    id: 'dharohar-2013',
+    sectionNumber: '03',
+    edition: '2013 Foundation Edition',
+    badge: 'Inaugural Foundation · 2013',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+    title: 'Dharohar 2013 — 1st Re-Union Souvenir',
+    tagline: "G.C.A. Alumni Association's 1st Re-Union",
+    description:
+      'The historic first souvenir published during the maiden grand reunion in November 2013 that formally birthed the modern GCAAA movement. A treasure trove of vintage campus photography, foundational vision papers, and heartfelt memoirs from the pioneers of Lucknow architecture.',
+    coverImg: coverSouvenir2013,
+    pages: 146,
+    fileSize: '740 MB',
+    pdfUrl: '/publications/Souvenir%20(2013)%201_117.pdf',
+    downloadFilename: 'GCAAA_1st_ReUnion_2013_Souvenir.pdf',
+    year: '2013',
+    publisher: 'Government College of Architecture Alumni Association, Lucknow',
+    theme: 'amber',
+    highlights: [
+      'The inaugural historical publication establishing GCAAA identity',
+      'Rare photographic chronicle of Tagore Marg campus from the 1970s onwards',
+      'Foundational charters, bylaws, and vision statements of the alumni association',
+      'Batch memoirs, nostalgic hostel anecdotes, and sketches by senior alumni',
+      'Directory of founding life members and patrons across four decades',
+    ],
+    sectionsCovered: [
+      { title: 'The Founding Genesis', desc: 'Story of how the 1st GCA reunion was conceived and organized' },
+      { title: 'Vintage Campus Archives', desc: 'Classic photos of red-brick studios, corridors, and lawns' },
+      { title: 'Memoirs & Essays', desc: 'Personal recollections of student life, jury days, and legends' },
+      { title: 'First Membership Roll', desc: 'Pioneering alumni members who laid the groundwork for GCAAA' },
+    ],
+  },
+];

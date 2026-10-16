@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 235 68" fill="none">
+  <!-- Round Seal -->
+  <g transform="translate(6, 4)">
+    <circle cx="30" cy="30" r="28" stroke="#C88E33" stroke-width="2.8" fill="#FAFAFA"/>
+    <circle cx="30" cy="30" r="24" stroke="#C88E33" stroke-width="1" fill="none"/>
+    <!-- Stylized IL -->
+    <path d="M 21 17 L 21 41 M 27 17 L 27 41 L 39 41" stroke="#00796B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="37" cy="17" r="2.5" fill="#00796B"/>
+  </g>
+  <g transform="translate(74, 16)">
+    <text x="0" y="24" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="25" fill="#00796B" letter-spacing="1">IMPAC LIFT</text>
+    <text x="0" y="42" font-family="Arial, sans-serif" font-weight="800" font-size="11.5" fill="#C88E33" letter-spacing="1.5">ELEVATING EXCELLENCE</text>
+  </g>
+</svg>
