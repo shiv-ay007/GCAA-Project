@@ -69,13 +69,17 @@ export const RegisteredMembersPage = () => {
         limit: itemsPerPage,
         search: debouncedSearch,
         view: 'public',
+        status: 'Paid',
         sortBy: 'createdAt',
         order: 'desc',
       });
 
       if (res && res.success) {
-        setMembers(res.data || []);
-        setTotalMembers(res.total ?? 0);
+        const approvedMembers = (res.data || []).filter(
+          (m) => m.status !== 'Pending' && m.status !== 'Rejected'
+        );
+        setMembers(approvedMembers);
+        setTotalMembers(res.total ?? approvedMembers.length);
       } else {
         setError(res?.message || 'Failed to fetch registered members from server');
       }

@@ -30,14 +30,14 @@ import {
   Loader2,
 } from 'lucide-react';
 import logoImg from '@/assets/images/logo.png';
+import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
 import { submitAlumniRegistration } from '@/Api/registeredMemberApi';
 
 // ✅ Validation helpers
 const NAME_REGEX = /^[A-Za-z\s.'-]+$/;      // only letters, spaces, dot, apostrophe, hyphen
-const DIGITS_ONLY = /^\d*$/;                 // only digits
 const PHONE_REGEX = /^[0-9]{10}$/;           // exactly 10 digits
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const UTR_REGEX = /^[A-Za-z0-9]{8,22}$/;     // alphanumeric 8-22 chars
+const UTR_REGEX = /^[A-Za-z0-9]{12}$/;     // exact 12 chars
 
 export const AlumniRegistrationPage = () => {
   const [membershipData, setMembershipData] = useState({
@@ -53,6 +53,7 @@ export const AlumniRegistrationPage = () => {
     organization: '',
     designation: '',
     email: '',
+    mobile: '',
     officeStreet: '',
     officeCity: '',
     officeCountry: 'India',
@@ -104,8 +105,25 @@ export const AlumniRegistrationPage = () => {
     }
 
     // ✅ Phone fields — digits only, max 10
-    if (['officePhone', 'residencePhone'].includes(field)) {
+    if (['officePhone', 'residencePhone', 'mobile'].includes(field)) {
       sanitized = value.replace(/\D/g, '').slice(0, 10);
+      setMembershipData((prev) => ({
+        ...prev,
+        mobile: sanitized,
+        residencePhone: sanitized,
+        officePhone: sanitized,
+      }));
+      if (fieldErrors.mobile || fieldErrors.officePhone || fieldErrors.residencePhone) {
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          delete next.mobile;
+          delete next.officePhone;
+          delete next.residencePhone;
+          return next;
+        });
+      }
+      if (stepError) setStepError('');
+      return;
     }
 
     // ✅ Passing year — digits only, max 4
@@ -113,9 +131,9 @@ export const AlumniRegistrationPage = () => {
       sanitized = value.replace(/\D/g, '').slice(0, 4);
     }
 
-    // ✅ UTR / Cheque No — alphanumeric only
+    // ✅ UTR / Transaction No — alphanumeric only, max 12
     if (field === 'chequeNo') {
-      sanitized = value.replace(/[^A-Za-z0-9]/g, '').slice(0, 22);
+      sanitized = value.replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase();
     }
 
     setMembershipData((prev) => ({
@@ -187,23 +205,18 @@ export const AlumniRegistrationPage = () => {
       errs.email = 'Please enter a valid email address';
     }
 
-    // Phone (residence or office as sameAsOffice)
-    const phoneVal = membershipData.sameAsOffice
-      ? membershipData.officePhone?.trim()
-      : membershipData.residencePhone?.trim();
+    // Phone (Primary Mobile)
+    const phoneVal = (
+      membershipData.mobile ||
+      membershipData.residencePhone ||
+      membershipData.officePhone ||
+      ''
+    ).trim();
 
     if (!phoneVal) {
-      if (membershipData.sameAsOffice) {
-        errs.officePhone = 'Phone number is required';
-      } else {
-        errs.residencePhone = 'Mobile number is required';
-      }
+      errs.mobile = 'Mobile number is required';
     } else if (!PHONE_REGEX.test(phoneVal)) {
-      if (membershipData.sameAsOffice) {
-        errs.officePhone = 'Enter a valid 10-digit phone number';
-      } else {
-        errs.residencePhone = 'Enter a valid 10-digit mobile number';
-      }
+      errs.mobile = 'Enter a valid 10-digit mobile number';
     }
 
     // Address — mandatory (if sameAsOffice, office is used)
@@ -225,19 +238,17 @@ export const AlumniRegistrationPage = () => {
   const validateStep2 = () => {
     const errs = {};
 
-    if (membershipData.paymentMode === 'Online') {
-      if (!membershipData.chequeNo?.trim()) {
-        errs.chequeNo = 'UTR / Transaction ID is required';
-      } else if (!UTR_REGEX.test(membershipData.chequeNo.trim())) {
-        errs.chequeNo = 'Enter a valid UTR (8-22 alphanumeric characters)';
-      }
-      if (!membershipData.paymentProofPreview) {
-        errs.paymentProof = 'Payment screenshot / receipt is required';
-      }
-    } else if (membershipData.paymentMode === 'Cheque') {
-      if (!membershipData.chequeNo?.trim()) errs.chequeNo = 'Cheque number is required';
-      if (!membershipData.drawnOnBank?.trim()) errs.drawnOnBank = 'Bank name & branch are required';
-      if (!membershipData.chequeDate?.trim()) errs.chequeDate = 'Cheque date is required';
+    // Online Payment validation
+    const utr = (membershipData.chequeNo || '').trim();
+    if (!utr) {
+      errs.chequeNo = '12-digit UTR / Transaction ID is required';
+    } else if (utr.length !== 12) {
+      errs.chequeNo = 'UTR number must be exactly 12 characters';
+    } else if (!UTR_REGEX.test(utr)) {
+      errs.chequeNo = 'Enter a valid 12-digit alphanumeric UTR number';
+    }
+    if (!membershipData.paymentProofPreview) {
+      errs.paymentProof = 'Payment screenshot / receipt is required';
     }
 
     const sig = membershipData.applicantSignature?.trim();
@@ -291,15 +302,13 @@ export const AlumniRegistrationPage = () => {
             residenceStreet: prev.officeStreet,
             residenceCity: prev.officeCity,
             residenceCountry: prev.officeCountry,
-            residencePhone: prev.officePhone,
           }
         : {}),
     }));
   };
 
   const handleOfficeFieldChange = (field, value) => {
-    let sanitized = value;
-    if (field === 'officePhone') sanitized = value.replace(/\D/g, '').slice(0, 10);
+    const sanitized = value;
 
     setMembershipData((prev) => {
       const updated = { ...prev, [field]: sanitized };
@@ -307,7 +316,6 @@ export const AlumniRegistrationPage = () => {
         if (field === 'officeStreet') updated.residenceStreet = sanitized;
         if (field === 'officeCity') updated.residenceCity = sanitized;
         if (field === 'officeCountry') updated.residenceCountry = sanitized;
-        if (field === 'officePhone') updated.residencePhone = sanitized;
       }
       return updated;
     });
@@ -356,8 +364,18 @@ export const AlumniRegistrationPage = () => {
       setIsSubmitting(true);
       setStepError('');
 
+      const resolvedPhone = (
+        membershipData.mobile ||
+        membershipData.residencePhone ||
+        membershipData.officePhone ||
+        ''
+      ).trim();
+
       const payload = {
         ...membershipData,
+        mobile: resolvedPhone,
+        residencePhone: resolvedPhone,
+        officePhone: resolvedPhone,
         qualifications: membershipData.qualification ? [membershipData.qualification] : ['B.Arch.'],
         lastName: actualLastName,
         surName: actualLastName,
@@ -624,74 +642,40 @@ export const AlumniRegistrationPage = () => {
 
       {/* SCREEN VIEW */}
       <div className="print:hidden">
-        {/* HERO */}
-        <section className="relative py-16 sm:py-20 bg-neutral-950 text-white text-center border-b border-neutral-900 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-red-600/15 blur-[140px] rounded-full pointer-events-none -z-10" />
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/80 border border-red-800/60 text-red-400 text-xs font-extrabold uppercase tracking-widest mb-4">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Official GCAAA Enrollment Portal
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black font-serif tracking-tight leading-tight">
-              Alumni Life Time{' '}
-              <span className="text-[#B70D2B] underline decoration-red-400/60 underline-offset-8">
-                Membership Registration
-              </span>
+        {/* ========================================================
+            1. SLEEK MINIMAL HERO BANNER
+        ======================================================== */}
+        <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+          {/* Background Campus Image */}
+          <img
+            src={buildingHeroImg}
+            alt="Government College of Architecture"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+
+          {/* Subtle Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+
+          {/* Content: Title & Breadcrumb Only */}
+          <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+              Alumni Registration
             </h1>
-            <p className="mt-5 text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              Official enrollment form of Government College of Architecture Alumni Association (GCAAA Lucknow). Apply for verified Life Membership, permanent membership number, voting rights, and alumni directory credentials.
-            </p>
-          </div>
-        </section>
-
-        {/* BENEFIT PILLARS */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 -mt-8 relative z-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-xl border border-neutral-200/90 flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 text-[#B70D2B] flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-[#B70D2B] uppercase tracking-wider">Global Directory</p>
-                <h3 className="text-base font-extrabold text-neutral-900 mt-0.5">3,500+ Alumni Network</h3>
-                <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
-                  Connect with batchmates, faculty mentors, and seniors across India and internationally.
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-xl border border-neutral-200/90 flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 text-[#B70D2B] flex items-center justify-center shrink-0">
-                <Calendar className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-[#B70D2B] uppercase tracking-wider">Annual GBM Governance</p>
-                <h3 className="text-base font-extrabold text-neutral-900 mt-0.5">Voting &amp; Assembly Rights</h3>
-                <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
-                  Full constitutional voting privileges in GCAAA elections and Annual General Body Meetings.
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-xl border border-neutral-200/90 flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 text-[#B70D2B] flex items-center justify-center shrink-0">
-                <Award className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-[#B70D2B] uppercase tracking-wider">Life Membership</p>
-                <h3 className="text-base font-extrabold text-neutral-900 mt-0.5">Official ID &amp; Certificate</h3>
-                <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
-                  Permanent Membership No., verified certificate, and listing in the official alumni roll.
-                </p>
-              </div>
+            <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+              <Link to="/" className="hover:text-red-400 transition-colors">
+                HOME
+              </Link>
+              <span className="text-red-500 font-bold">—</span>
+              <span className="text-amber-400">MEMBERSHIP REGISTRATION</span>
             </div>
           </div>
         </section>
 
-        {/* FORM */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-8 sm:py-12">
+        {/* FORM (Full Navbar Width: max-w-[1400px]) */}
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-6 sm:py-8">
           <div className="bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden">
             <div className="p-4 sm:p-6 lg:p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
-                <div className="lg:col-span-7 flex flex-col space-y-6">
+              <div className="w-full flex flex-col space-y-6">
                   <div className="border-2 border-neutral-800 rounded-2xl p-4 sm:p-6 bg-neutral-50/80 shadow-sm relative overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-[#B70D2B] to-neutral-900" />
                     <h2 className="pt-3.5 text-center text-lg sm:text-xl font-black text-neutral-900 uppercase tracking-widest">
@@ -1120,22 +1104,15 @@ export const AlumniRegistrationPage = () => {
                                     type="tel"
                                     inputMode="numeric"
                                     maxLength={10}
-                                    value={membershipData.sameAsOffice ? membershipData.officePhone : membershipData.residencePhone}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (membershipData.sameAsOffice) {
-                                        handleOfficeFieldChange('officePhone', val);
-                                      } else {
-                                        updateField('residencePhone', val);
-                                      }
-                                    }}
+                                    value={membershipData.mobile || membershipData.residencePhone || membershipData.officePhone || ''}
+                                    onChange={(e) => updateField('mobile', e.target.value)}
                                     placeholder="10-digit mobile number"
-                                    className={`${inputBase} ${(fieldErrors.residencePhone || fieldErrors.officePhone) ? inputError : inputNormal} tracking-wider`}
+                                    className={`${inputBase} ${(fieldErrors.mobile || fieldErrors.residencePhone || fieldErrors.officePhone) ? inputError : inputNormal} tracking-wider`}
                                   />
-                                  {(fieldErrors.residencePhone || fieldErrors.officePhone) && (
+                                  {(fieldErrors.mobile || fieldErrors.residencePhone || fieldErrors.officePhone) && (
                                     <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
                                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                      {fieldErrors.residencePhone || fieldErrors.officePhone}
+                                      {fieldErrors.mobile || fieldErrors.residencePhone || fieldErrors.officePhone}
                                     </p>
                                   )}
                                 </div>
@@ -1323,201 +1300,137 @@ export const AlumniRegistrationPage = () => {
                               </span>
                             </div>
 
-                            <div className="space-y-3">
+                            {/* PAYMENT METHOD (Online Only) */}
+                            <div className="space-y-2">
                               <label className="block text-[11px] font-bold text-neutral-700 uppercase tracking-wider">
-                                Select Payment Method <span className="text-red-600">*</span>
+                                Payment Method <span className="text-red-600">*</span>
                               </label>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {[
-                                  { id: 'Online', label: 'Online / UPI / NEFT', desc: 'Transfer via UPI / Bank' },
-                                  { id: 'Cheque', label: 'Cheque / DD', desc: 'Payable at Lucknow' },
-                                  { id: 'Cash', label: 'Cash Payment', desc: 'Deposit at FOAP Secretariat' },
-                                ].map((mode) => (
-                                  <label
-                                    key={mode.id}
-                                    className={`p-4 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
-                                      membershipData.paymentMode === mode.id
-                                        ? 'border-[#B70D2B] bg-red-50/70 text-neutral-900'
-                                        : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="radio"
-                                        name="paymentMode"
-                                        value={mode.id}
-                                        checked={membershipData.paymentMode === mode.id}
-                                        onChange={(e) => updateField('paymentMode', e.target.value)}
-                                        className="w-4 h-4 text-[#B70D2B] accent-[#B70D2B]"
-                                      />
-                                      <span className="text-xs sm:text-sm font-extrabold">{mode.label}</span>
-                                    </div>
-                                    <span className="text-[10px] text-neutral-500 mt-1 pl-6">{mode.desc}</span>
-                                  </label>
-                                ))}
+                              <div className="p-4 rounded-xl border-2 border-[#B70D2B] bg-red-50/70 text-neutral-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded-full bg-[#B70D2B] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs sm:text-sm font-extrabold text-neutral-900 block">
+                                      Online / UPI / NEFT / RTGS Transfer
+                                    </span>
+                                    <span className="text-[11px] text-neutral-600">
+                                      Direct online transfer to official GCA Alumni Association bank account
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="self-start sm:self-auto text-[11px] font-black uppercase tracking-wider text-[#B70D2B] bg-red-100 px-3 py-1 rounded-full border border-red-200 shrink-0">
+                                  ₹ 2,000/- (Lifetime)
+                                </span>
                               </div>
                             </div>
 
-                            {membershipData.paymentMode === 'Online' ? (
-                              <div className="bg-neutral-50 p-4 sm:p-5 rounded-xl border border-neutral-200 text-xs text-neutral-700 space-y-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 pb-2">
-                                  <p className="font-bold text-neutral-900 text-sm">🏦 GCAAA Official Bank Account:</p>
-                                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                                    Central Bank of India
-                                  </span>
-                                </div>
+                            {/* BANK DETAILS, UTR & SCREENSHOT UPLOAD */}
+                            <div className="bg-neutral-50 p-4 sm:p-5 rounded-xl border border-neutral-200 text-xs text-neutral-700 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 pb-2">
+                                <p className="font-bold text-neutral-900 text-sm">🏦 GCAAA Official Bank Account:</p>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                  Central Bank of India
+                                </span>
+                              </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs bg-white p-3.5 rounded-xl border border-neutral-200">
-                                  <p><strong className="text-neutral-900">Account Name:</strong> GCA Alumni Association</p>
-                                  <p><strong className="text-neutral-900">Bank:</strong> Central Bank of India</p>
-                                  <p><strong className="text-neutral-900">Branch:</strong> FOAP, Tagore Marg, Lucknow</p>
-                                  <p><strong className="text-neutral-900">Account Type:</strong> Current Account</p>
-                                </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs bg-white p-3.5 rounded-xl border border-neutral-200">
+                                <p><strong className="text-neutral-900">Account Name:</strong> GCA Alumni Association</p>
+                                <p><strong className="text-neutral-900">Bank:</strong> Central Bank of India</p>
+                                <p><strong className="text-neutral-900">Branch:</strong> FOAP, Tagore Marg, Lucknow</p>
+                                <p><strong className="text-neutral-900">Account Type:</strong> Current Account</p>
+                              </div>
 
-                                <div>
-                                  <label className="block text-[11px] font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="block text-[11px] font-bold text-neutral-700 uppercase tracking-wider">
                                     UTR / UPI Reference / Transaction ID <span className="text-red-600">*</span>
                                   </label>
-                                  <input
-                                    type="text"
-                                    value={membershipData.chequeNo}
-                                    onChange={(e) => updateField('chequeNo', e.target.value)}
-                                    placeholder="Enter 12-digit UTR / Transaction Reference"
-                                    className={`${inputBase} ${fieldErrors.chequeNo ? inputError : 'bg-white border-neutral-300 focus:border-[#B70D2B] focus:ring-2 focus:ring-red-100'} font-bold text-neutral-900 tracking-wider`}
-                                  />
-                                  {fieldErrors.chequeNo && (
-                                    <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
-                                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fieldErrors.chequeNo}
-                                    </p>
-                                  )}
+                                  <span className="text-[10px] font-bold text-neutral-500 font-mono">
+                                    {membershipData.chequeNo?.length || 0}/12
+                                  </span>
                                 </div>
+                                <input
+                                  type="text"
+                                  maxLength={12}
+                                  value={membershipData.chequeNo}
+                                  onChange={(e) => updateField('chequeNo', e.target.value)}
+                                  placeholder="Enter 12-digit UTR / Transaction Reference"
+                                  className={`${inputBase} ${fieldErrors.chequeNo ? inputError : 'bg-white border-neutral-300 focus:border-[#B70D2B] focus:ring-2 focus:ring-red-100'} font-bold text-neutral-900 tracking-wider uppercase font-mono`}
+                                />
+                                {fieldErrors.chequeNo && (
+                                  <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fieldErrors.chequeNo}
+                                  </p>
+                                )}
+                              </div>
 
-                                <div id="payment-proof-upload-box" className="pt-2 border-t border-neutral-200">
-                                  <label className="block text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                                    <span className="flex items-center gap-1.5">
-                                      <Camera className="w-3.5 h-3.5 text-[#B70D2B]" />
-                                      <span>Payment Screenshot <span className="text-red-600">*</span></span>
-                                    </span>
-                                    <span className="text-[10px] font-semibold text-neutral-500 normal-case">(JPG, PNG max 10MB)</span>
-                                  </label>
+                              <div id="payment-proof-upload-box" className="pt-2 border-t border-neutral-200">
+                                <label className="block text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                  <span className="flex items-center gap-1.5">
+                                    <Camera className="w-3.5 h-3.5 text-[#B70D2B]" />
+                                    <span>Payment Screenshot <span className="text-red-600">*</span></span>
+                                  </span>
+                                  <span className="text-[10px] font-semibold text-neutral-500 normal-case">(JPG, PNG max 10MB)</span>
+                                </label>
 
-                                  {membershipData.paymentProofPreview ? (
-                                    <div className="bg-white p-3.5 rounded-xl border-2 border-emerald-500 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
-                                          <img src={membershipData.paymentProofPreview} alt="Payment Preview" className="w-full h-full object-cover" />
-                                        </div>
-                                        <div className="min-w-0">
-                                          <div className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 mb-0.5">
-                                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                            <span>Attached ✓</span>
-                                          </div>
-                                          <p className="text-xs font-bold text-neutral-900 truncate max-w-[200px] sm:max-w-[260px]">
-                                            {membershipData.paymentProofName || 'payment_proof.jpg'}
-                                          </p>
-                                        </div>
+                                {membershipData.paymentProofPreview ? (
+                                  <div className="bg-white p-3.5 rounded-xl border-2 border-emerald-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                      <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100 shrink-0">
+                                        <img src={membershipData.paymentProofPreview} alt="Payment Preview" className="w-full h-full object-cover" />
                                       </div>
-                                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                        <label className="cursor-pointer text-xs font-bold text-neutral-700 hover:text-red-600 px-3 py-1.5 rounded-lg border border-neutral-300 hover:bg-neutral-50 transition-colors">
-                                          <span>Change</span>
-                                          <input type="file" accept="image/*" onChange={handlePaymentProofUpload} className="hidden" />
-                                        </label>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            updateField('paymentProofPreview', null);
-                                            updateField('paymentProofName', '');
-                                          }}
-                                          className="text-xs font-bold text-red-600 hover:text-red-800 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
-                                        >
-                                          Remove
-                                        </button>
+                                      <div className="min-w-0">
+                                        <div className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 mb-0.5">
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                          <span>Attached ✓</span>
+                                        </div>
+                                        <p className="text-xs font-bold text-neutral-900 truncate max-w-[200px] sm:max-w-[260px]">
+                                          {membershipData.paymentProofName || 'payment_proof.jpg'}
+                                        </p>
                                       </div>
                                     </div>
-                                  ) : (
-                                    <label className={`group relative flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed transition-all cursor-pointer text-center ${
-                                      fieldErrors.paymentProof ? 'border-red-500 bg-red-50/30' : 'border-neutral-300 hover:border-[#B70D2B] bg-white hover:bg-red-50/20'
-                                    }`}>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handlePaymentProofUpload}
-                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                      />
-                                      <div className="w-12 h-12 rounded-full bg-red-100 text-[#B70D2B] group-hover:scale-110 flex items-center justify-center transition-transform mb-2">
-                                        <Upload className="w-6 h-6" />
-                                      </div>
-                                      <p className="text-sm font-extrabold text-neutral-900">Click to Upload Payment Screenshot</p>
-                                      <span className="text-[10px] text-neutral-500 mt-0.5">Upload proof of ₹ 2,000 transfer</span>
-                                    </label>
-                                  )}
-                                  {fieldErrors.paymentProof && (
-                                    <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
-                                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fieldErrors.paymentProof}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            ) : membershipData.paymentMode === 'Cheque' ? (
-                              <div className="space-y-3 bg-neutral-50 p-4 sm:p-5 rounded-xl border border-neutral-200">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-neutral-600 uppercase tracking-wider mb-1">
-                                      Cheque No. <span className="text-red-600">*</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={membershipData.chequeNo}
-                                      onChange={(e) => updateField('chequeNo', e.target.value)}
-                                      placeholder="e.g. 000421"
-                                      className={`${inputBase} ${fieldErrors.chequeNo ? inputError : 'bg-white border-neutral-300 focus:border-[#B70D2B]'}`}
-                                    />
-                                    {fieldErrors.chequeNo && (
-                                      <p className="text-red-600 text-[11px] font-semibold mt-1">{fieldErrors.chequeNo}</p>
-                                    )}
+                                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                      <label className="cursor-pointer text-xs font-bold text-neutral-700 hover:text-red-600 px-3 py-1.5 rounded-lg border border-neutral-300 hover:bg-neutral-50 transition-colors">
+                                        <span>Change</span>
+                                        <input type="file" accept="image/*" onChange={handlePaymentProofUpload} className="hidden" />
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          updateField('paymentProofPreview', null);
+                                          updateField('paymentProofName', '');
+                                        }}
+                                        className="text-xs font-bold text-red-600 hover:text-red-800 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-neutral-600 uppercase tracking-wider mb-1">
-                                      Drawn on Bank <span className="text-red-600">*</span>
-                                    </label>
+                                ) : (
+                                  <label className={`group relative flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed transition-all cursor-pointer text-center ${
+                                    fieldErrors.paymentProof ? 'border-red-500 bg-red-50/30' : 'border-neutral-300 hover:border-[#B70D2B] bg-white hover:bg-red-50/20'
+                                  }`}>
                                     <input
-                                      type="text"
-                                      value={membershipData.drawnOnBank}
-                                      onChange={(e) => updateField('drawnOnBank', e.target.value)}
-                                      placeholder="Bank Name & Branch"
-                                      className={`${inputBase} ${fieldErrors.drawnOnBank ? inputError : 'bg-white border-neutral-300 focus:border-[#B70D2B]'}`}
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handlePaymentProofUpload}
+                                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                     />
-                                    {fieldErrors.drawnOnBank && (
-                                      <p className="text-red-600 text-[11px] font-semibold mt-1">{fieldErrors.drawnOnBank}</p>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <label className="block text-[11px] font-bold text-neutral-600 uppercase tracking-wider mb-1">
-                                      Date <span className="text-red-600">*</span>
-                                    </label>
-                                    <input
-                                      type="date"
-                                      value={membershipData.chequeDate}
-                                      onChange={(e) => updateField('chequeDate', e.target.value)}
-                                      className={`${inputBase} ${fieldErrors.chequeDate ? inputError : 'bg-white border-neutral-300 focus:border-[#B70D2B]'} font-bold`}
-                                    />
-                                    {fieldErrors.chequeDate && (
-                                      <p className="text-red-600 text-[11px] font-semibold mt-1">{fieldErrors.chequeDate}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-xs text-neutral-800 bg-amber-50/90 p-3 rounded-lg border border-amber-300">
-                                  ℹ️ <strong>Note:</strong> Cheques in favour of <strong>&ldquo;GCA Alumni Association&rdquo;</strong>, payable at Lucknow.
-                                </p>
+                                    <div className="w-12 h-12 rounded-full bg-red-100 text-[#B70D2B] group-hover:scale-110 flex items-center justify-center transition-transform mb-2">
+                                      <Upload className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-sm font-extrabold text-neutral-900">Click to Upload Payment Screenshot</p>
+                                    <span className="text-[10px] text-neutral-500 mt-0.5">Upload proof of ₹ 2,000 transfer</span>
+                                  </label>
+                                )}
+                                {fieldErrors.paymentProof && (
+                                  <p className="text-red-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fieldErrors.paymentProof}
+                                  </p>
+                                )}
                               </div>
-                            ) : (
-                              <div className="bg-neutral-50 p-4 sm:p-5 rounded-xl border border-neutral-200 text-xs text-neutral-700 space-y-2">
-                                <p className="font-bold text-neutral-900 text-sm">💵 Cash Deposit Instructions:</p>
-                                <p className="leading-relaxed">
-                                  Life Membership cash fee of <strong>₹ 2,000</strong> can be deposited with the GCAAA Treasurer at FOAP-AKTU Campus, Lucknow.
-                                </p>
-                              </div>
-                            )}
+                            </div>
                           </div>
 
                           {/* DECLARATION */}
@@ -1614,137 +1527,113 @@ export const AlumniRegistrationPage = () => {
                       )}
                     </form>
                   )}
-                </div>
-
-                {/* RIGHT COLUMN */}
-                <div className="lg:col-span-5 flex flex-col space-y-6">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <Link
-                        to="/registered-members"
-                        className="group relative overflow-hidden rounded-xl bg-[#D32F2F] hover:bg-[#B71C1C] p-4 sm:p-5 text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all flex flex-col justify-between min-h-[135px] border border-red-600 cursor-pointer"
-                      >
-                        <div>
-                          <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-red-100 bg-black/20 px-2.5 py-0.5 rounded-full mb-2">
-                            <Users className="w-3.5 h-3.5" />
-                            Existing Members?
-                          </span>
-                          <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug">
-                            Know your GCAAA membership number.
-                          </h4>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between text-xs font-bold text-red-100">
-                          <span className="underline underline-offset-4 decoration-red-300">Search Directory</span>
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
-                        </div>
-                      </Link>
-
-                      <div className="relative overflow-hidden rounded-xl bg-[#FB8C00] p-4 sm:p-5 text-white shadow-md flex flex-col justify-between min-h-[135px] border border-amber-500">
-                        <div>
-                          <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-100 bg-black/20 px-2.5 py-0.5 rounded-full mb-2">
-                            <Award className="w-3.5 h-3.5" />
-                            Online Portal
-                          </span>
-                          <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug">New Registration</h4>
-                        </div>
-                        <p className="mt-3 text-xs font-medium text-amber-100 leading-snug">
-                          Fill the official Life Membership form on the left
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-1 flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight font-serif">
-                          Process of receiving Membership
-                        </h3>
-                        <p className="text-xs text-neutral-600 mt-1">
-                          Official guidelines, eligibility criteria, and member entitlements.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={toggleAllSections}
-                        className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-neutral-600 hover:text-[#B70D2B] bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                      >
-                        <span>{areAllOpen ? 'Collapse All' : 'Expand All'}</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {[
-                        { id: 'eligibility', title: 'Eligibility of Application', items: [
-                          <>Any person who has passed degree course in Architecture i.e. <strong>B. Arch.</strong> from a recognized University or Govt. College of Architecture (GCA Lucknow / FOAP AKTU / GBTU).</>,
-                          <>Possess a 5-year Architectural Degree recognized by <strong>Council of Architecture (COA)</strong>, India.</>,
-                          <>Nominated or recommended by at least one active GCAAA member or registered alumnus.</>,
-                        ]},
-                        { id: 'benefits', title: 'Membership Benefits', items: [
-                          <><strong>Official Life Membership ID &amp; Certificate:</strong> Issued by GCA Alumni Association.</>,
-                          <><strong>Voting Rights in AGM / GBM:</strong> Full voting privileges in Annual General Body Meetings.</>,
-                          <><strong>Verified Directory Listing:</strong> Listing in the global searchable Alumni Directory.</>,
-                          <><strong>Reunion &amp; Event Privileges:</strong> Priority registration for events such as <strong>Dharohar 2026</strong>.</>,
-                          <><strong>Professional Networking:</strong> Connect with distinguished alumni architects globally.</>,
-                        ]},
-                        { id: 'fee', title: 'Fee Details', items: [
-                          <><strong>Life Membership Fee:</strong> ₹ 2,000/- (Rupees Two Thousand Only) — One-time lifetime contribution.</>,
-                          <><strong>Mode of Payment:</strong> Cheque, DD, NEFT, IMPS, RTGS, or Online UPI.</>,
-                          <><strong>Payment In Favour Of:</strong> <em>&ldquo;Govt. College of Architecture Alumni Association&rdquo;</em>.</>,
-                          <><strong>Receipt &amp; Acknowledgment:</strong> Digital receipt generated upon account clearance.</>,
-                        ]},
-                        { id: 'remarks', title: 'Remarks', items: [
-                          <>Please ensure all spellings of your full name match your COA registration or degree certificate.</>,
-                          <>Both Office and Residence addresses are recorded for safe courier delivery of official certificates.</>,
-                          <>If paying via UPI or NEFT, please note the 12-digit UTR number and mention it accurately.</>,
-                          <>For any queries, write to Secretariat at <span className="font-bold text-[#B70D2B]">contact.gcaaa@gmail.com</span>.</>,
-                        ]},
-                      ].map((sec) => (
-                        <div key={sec.id} className="overflow-hidden rounded-xl border border-neutral-200">
-                          <button
-                            type="button"
-                            onClick={() => toggleSection(sec.id)}
-                            className={`w-full text-left px-4 py-3.5 flex items-center justify-between font-bold text-xs sm:text-sm transition-colors cursor-pointer ${
-                              openSections[sec.id] ? 'bg-[#FB8C00] text-white' : 'bg-white hover:bg-neutral-50 text-neutral-800'
-                            }`}
-                          >
-                            <span>{sec.title}</span>
-                            {openSections[sec.id] ? <ChevronUp className="w-4 h-4 shrink-0 text-white" /> : <ChevronDown className="w-4 h-4 shrink-0 text-neutral-500" />}
-                          </button>
-                          {openSections[sec.id] && (
-                            <div className="bg-white p-5 text-xs text-neutral-700 space-y-2.5 border-t border-neutral-200">
-                              <ul className="space-y-2 list-disc list-outside pl-4 marker:text-neutral-400 leading-relaxed">
-                                {sec.items.map((item, i) => <li key={i}>{item}</li>)}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-950 flex items-start gap-3">
-                      <Info className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                      <p className="text-xs font-medium leading-relaxed">
-                        <strong className="font-extrabold text-red-700">Note:</strong> Before filling the form get ready with the COA certificate / academic degree, Payment proof (Cheque / UTR number), and Passport size photo for upload.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto pt-4">
-                    <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div>
-                        <h5 className="text-xs font-black uppercase tracking-wider text-amber-400">Already Registered?</h5>
-                        <p className="text-xs text-neutral-300 mt-0.5">Verify your details or search for batchmates.</p>
-                      </div>
-                      <Link
-                        to="/registered-members"
-                        className="shrink-0 px-4 py-2 bg-white text-neutral-900 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5"
-                      >
-                        <Search className="w-3.5 h-3.5" />
-                        <span>View Directory</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================
+            INSTRUCTIONS & EXISTING MEMBERS (Full Navbar Width: max-w-[1400px])
+        ======================================================== */}
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 pb-12 sm:pb-16 space-y-6">
+          {/* Already Registered / View Directory Banner Card */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-neutral-800">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 border border-amber-400/30 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h5 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400">
+                  Already Registered?
+                </h5>
+                <p className="text-xs text-neutral-300 mt-0.5">
+                  Verify your details or search for batchmates in the directory.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/registered-members"
+              className="shrink-0 px-5 py-2.5 bg-white text-neutral-900 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>View Directory</span>
+            </Link>
+          </div>
+
+          {/* Process of receiving Membership Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-200">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight font-serif">
+                  Process of receiving Membership
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-600 mt-1">
+                  Official guidelines, eligibility criteria, and member entitlements.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleAllSections}
+                className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs font-bold text-neutral-700 hover:text-[#B70D2B] bg-neutral-100 hover:bg-neutral-200 px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                <span>{areAllOpen ? 'Collapse All' : 'Expand All'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { id: 'eligibility', title: 'Eligibility of Application', items: [
+                  <>Any person who has passed degree course in Architecture i.e. <strong>B. Arch.</strong> from a recognized University or Govt. College of Architecture (GCA Lucknow / FOAP AKTU / GBTU).</>,
+                  <>Possess a 5-year Architectural Degree recognized by <strong>Council of Architecture (COA)</strong>, India.</>,
+                  <>Nominated or recommended by at least one active GCAAA member or registered alumnus.</>,
+                ]},
+                { id: 'benefits', title: 'Membership Benefits', items: [
+                  <><strong>Official Life Membership ID &amp; Certificate:</strong> Issued by GCA Alumni Association.</>,
+                  <><strong>Voting Rights in AGM / GBM:</strong> Full voting privileges in Annual General Body Meetings.</>,
+                  <><strong>Verified Directory Listing:</strong> Listing in the global searchable Alumni Directory.</>,
+                  <><strong>Reunion &amp; Event Privileges:</strong> Priority registration for events such as <strong>Dharohar 2026</strong>.</>,
+                  <><strong>Professional Networking:</strong> Connect with distinguished alumni architects globally.</>,
+                ]},
+                { id: 'fee', title: 'Fee Details', items: [
+                  <><strong>Life Membership Fee:</strong> ₹ 2,000/- (Rupees Two Thousand Only) — One-time lifetime contribution.</>,
+                  <><strong>Mode of Payment:</strong> Online UPI, NEFT, IMPS, or RTGS Transfer.</>,
+                  <><strong>Payment In Favour Of:</strong> <em>&ldquo;Govt. College of Architecture Alumni Association&rdquo;</em>.</>,
+                  <><strong>Receipt &amp; Acknowledgment:</strong> Digital receipt generated upon account clearance.</>,
+                ]},
+                { id: 'remarks', title: 'Remarks', items: [
+                  <>Please ensure all spellings of your full name match your COA registration or degree certificate.</>,
+                  <>Both Office and Residence addresses are recorded for safe courier delivery of official certificates.</>,
+                  <>When paying via UPI, NEFT or IMPS, please note the 12-digit UTR number and mention it accurately.</>,
+                  <>For any queries, write to Secretariat at <span className="font-bold text-[#B70D2B]">contact.gcaaa@gmail.com</span>.</>,
+                ]},
+              ].map((sec) => (
+                <div key={sec.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50 flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(sec.id)}
+                    className={`w-full text-left px-5 py-3.5 flex items-center justify-between font-bold text-xs sm:text-sm transition-colors cursor-pointer ${
+                      openSections[sec.id] ? 'bg-[#FB8C00] text-white' : 'bg-neutral-100 hover:bg-neutral-200/70 text-neutral-800'
+                    }`}
+                  >
+                    <span>{sec.title}</span>
+                    {openSections[sec.id] ? <ChevronUp className="w-4 h-4 shrink-0 text-white" /> : <ChevronDown className="w-4 h-4 shrink-0 text-neutral-500" />}
+                  </button>
+                  {openSections[sec.id] && (
+                    <div className="bg-white p-5 text-xs sm:text-sm text-neutral-700 space-y-2.5 border-t border-neutral-200 flex-1">
+                      <ul className="space-y-2 list-disc list-outside pl-5 marker:text-neutral-400 leading-relaxed">
+                        {sec.items.map((item, i) => <li key={i}>{item}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 sm:p-5 rounded-xl bg-red-50 border border-red-200 text-red-950 flex items-start gap-3">
+              <Info className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                <strong className="font-extrabold text-red-700">Note:</strong> Before filling the form get ready with the COA certificate / academic degree, Payment proof (12-digit UTR number &amp; transfer screenshot), and Passport size photo for upload.
+              </p>
             </div>
           </div>
         </section>

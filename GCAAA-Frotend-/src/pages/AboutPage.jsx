@@ -1,7 +1,9 @@
+import { Link } from 'react-router-dom';
 import { AboutSection } from '@/components/home/AboutSection';
 import { AlumniLegacySection } from '@/components/home/AlumniLegacySection';
 import { CheckCircle2, ShieldCheck, HeartHandshake, Globe } from 'lucide-react';
 import { APP_NAME } from '@/utils/constants';
+import aboutHeroImg from '@/assets/images/clg.png';
 
 export const AboutPage = () => {
   const missionGoals = [
@@ -24,20 +26,34 @@ export const AboutPage = () => {
 
   return (
     <div className="w-full bg-neutral-950 text-white">
-      {/* 1. Page Header Banner */}
-      <div className="relative py-16 sm:py-20 text-center border-b border-neutral-900 bg-black/60 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[130px] rounded-full pointer-events-none -z-10" />
+      {/* ========================================================
+          1. SLEEK MINIMAL HERO BANNER
+      ======================================================== */}
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus Image */}
+        <img
+          src={aboutHeroImg}
+          alt={`About ${APP_NAME}`}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-        <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-red-500 mb-3">
-          Our Heritage & Community
-        </p>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white font-serif tracking-tight">
-          About {APP_NAME}
-        </h1>
-        <p className="mt-4 text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto px-4">
-          Dedicated to upholding the values, century-long legacy, and global impact of Government College of Architecture.
-        </p>
-      </div>
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            About {APP_NAME}
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">ABOUT US</span>
+          </div>
+        </div>
+      </section>
 
       {/* 2. College Origins & Heritage Section */}
       <AboutSection />
@@ -47,7 +63,7 @@ export const AboutPage = () => {
 
       {/* 4. Strategic Mission & Objectives Grid — WHITE SECTION */}
       <section className="w-full bg-white text-neutral-900 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500 mb-2">
               VISION & CORE VALUES

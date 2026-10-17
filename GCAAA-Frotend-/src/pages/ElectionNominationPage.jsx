@@ -945,46 +945,34 @@ export const ElectionNominationPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-              {/* Post Applied For */}
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
-                  Post Applied For <span className="text-red-600 font-black">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.post}
-                    onChange={(e) => handleInputChange('root', 'post', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white appearance-none pr-10 ${
-                      fieldErrors['post'] ? 'border-red-500 bg-red-50/50' : 'border-neutral-300'
-                    }`}
-                  >
-                    <option value="">-- Select Post --</option>
-                    {ELECTION_POSTS.map((item) => (
-                      <option key={item.post} value={item.post}>
-                        {item.post} ({item.seats}) — {item.eligibility}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-                {fieldErrors['post'] && (
-                  <p className="text-xs text-red-600 font-semibold mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    {fieldErrors['post']}
-                  </p>
-                )}
+            {/* Post Applied For */}
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                Post Applied For <span className="text-red-600 font-black">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={formData.post}
+                  onChange={(e) => handleInputChange('root', 'post', e.target.value)}
+                  className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white appearance-none pr-10 ${
+                    fieldErrors['post'] ? 'border-red-500 bg-red-50/50' : 'border-neutral-300'
+                  }`}
+                >
+                  <option value="">-- Select Post --</option>
+                  {ELECTION_POSTS.map((item) => (
+                    <option key={item.post} value={item.post}>
+                      {item.post} ({item.seats}) — {item.eligibility}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-
-              {/* Tenure & Eligibility Chip */}
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
-                  Tenure / Term
-                </label>
-                <div className="px-3.5 py-2.5 bg-neutral-100 rounded-lg border border-neutral-300 text-sm font-semibold text-neutral-700">
-                  Executive Committee Term (2026 – 2028)
-                </div>
-              </div>
+              {fieldErrors['post'] && (
+                <p className="text-xs text-red-600 font-semibold mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {fieldErrors['post']}
+                </p>
+              )}
             </div>
 
             {selectedPostObj && (
