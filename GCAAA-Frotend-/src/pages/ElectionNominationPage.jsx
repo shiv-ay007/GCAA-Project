@@ -506,11 +506,18 @@ export const ElectionNominationPage = () => {
         candidateMembership: formData.candidate.membershipNo,
         candidateMobile: formData.candidate.mobile,
         candidateEmail: formData.candidate.email,
+        candidateAddress: formData.candidate.address,
         candidatePhoto: formData.candidate.photo,
         proposerName: formData.proposer.fullName,
         proposerMembership: formData.proposer.membershipNo,
+        proposerMobile: formData.proposer.mobile,
+        proposerAddress: formData.proposer.address,
+        proposerPhoto: formData.proposer.photo,
         seconderName: formData.seconder.fullName,
         seconderMembership: formData.seconder.membershipNo,
+        seconderMobile: formData.seconder.mobile,
+        seconderAddress: formData.seconder.address,
+        seconderPhoto: formData.seconder.photo,
         submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       });
 
@@ -605,8 +612,237 @@ export const ElectionNominationPage = () => {
 
   return (
     <div className="w-full bg-[#f8fafc] text-neutral-900 min-h-screen pb-20 selection:bg-red-600 selection:text-white">
-      {/* Toast Notification */}
-      {toastMessage && (
+      {/* ========================================================
+          PRINT ONLY VIEW (Identical to Alumni Registration Official Print)
+      ======================================================== */}
+      <div className="hidden print:block w-full bg-white text-neutral-900 font-sans p-2 m-0 max-w-[210mm] mx-auto">
+        <div className="border-2 border-neutral-900 rounded-xl p-5 space-y-3.5">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b-2 border-neutral-900 pb-3 gap-4">
+            <div className="flex items-center gap-3">
+              <img src={logoImg} alt="GCAAA Logo" className="h-16 w-auto object-contain shrink-0" />
+              <div>
+                <h1 className="text-base font-black tracking-tight text-neutral-900 uppercase font-serif leading-tight">
+                  Govt. College of Architecture Alumni Association
+                </h1>
+                <p className="text-[10px] text-neutral-700 font-medium">
+                  Faculty of Architecture, AKTU (formerly GCA Lucknow / GBTU), Tagore Marg, Lucknow – 226007
+                </p>
+                <p className="text-[10px] text-[#B70D2B] font-bold">
+                  Email: contact.gcaaa@gmail.com | Website: www.gcaaa.org
+                </p>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="inline-block px-2.5 py-0.5 bg-neutral-900 text-white text-[9px] font-black uppercase tracking-wider rounded">
+                Official Nomination Copy
+              </span>
+              <p className="text-[10px] font-bold text-neutral-700 mt-1">
+                Date: {submitSuccess?.submittedAt || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </p>
+              <p className="text-[9px] font-mono font-bold text-neutral-500">
+                Ref: {submitSuccess?.nominationId || 'GCA-NOM-2026-OFFICIAL'}
+              </p>
+            </div>
+          </div>
+
+          {/* Banner */}
+          <div className="bg-neutral-100 py-1.5 px-3 rounded text-center border border-neutral-300">
+            <h2 className="text-xs font-black uppercase tracking-widest text-neutral-900">
+              Executive Committee Biennial Election (2026 – 2028) • Official Nomination Receipt
+            </h2>
+          </div>
+
+          {/* Post Applied Highlight */}
+          <div className="flex items-center justify-between p-2 rounded bg-neutral-50 border border-neutral-200 text-xs">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-neutral-500">Post Contested:</span>{' '}
+              <strong className="text-sm font-black text-[#8B0000] uppercase font-serif">
+                {submitSuccess?.post || formData.post || 'N/A'}
+              </strong>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] text-neutral-500 font-semibold">Term:</span>{' '}
+              <strong className="text-xs font-bold text-neutral-900">2026 – 2028</strong>
+            </div>
+          </div>
+
+          {/* 1. Candidate Information */}
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-wider text-neutral-900 border-b border-neutral-300 pb-1 mb-1.5">
+              1. Candidate Credentials &amp; Contact Details
+            </h3>
+            <div className="flex items-start gap-4">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] flex-1">
+                <div>
+                  <span className="text-neutral-500 font-semibold">Candidate Name:</span>{' '}
+                  <strong className="text-neutral-900">
+                    {submitSuccess?.candidateName || formData.candidate.fullName || 'N/A'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-neutral-500 font-semibold">GCAAA Membership No:</span>{' '}
+                  <strong className="font-mono text-neutral-900">
+                    {submitSuccess?.candidateMembership || formData.candidate.membershipNo || 'N/A'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-neutral-500 font-semibold">Contact Mobile:</span>{' '}
+                  <strong className="text-neutral-900">
+                    {submitSuccess?.candidateMobile || formData.candidate.mobile || 'N/A'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-neutral-500 font-semibold">Email Address:</span>{' '}
+                  <span className="text-neutral-800">
+                    {submitSuccess?.candidateEmail || formData.candidate.email || 'N/A'}
+                  </span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-neutral-500 font-semibold">Complete Address:</span>{' '}
+                  <span className="text-neutral-800">
+                    {submitSuccess?.candidateAddress || formData.candidate.address || 'N/A'}
+                  </span>
+                </div>
+              </div>
+              {(submitSuccess?.candidatePhoto || formData.candidate.photo) && (
+                <div className="shrink-0 text-center">
+                  <img
+                    src={submitSuccess?.candidatePhoto || formData.candidate.photo}
+                    alt="Candidate"
+                    className="w-20 h-24 object-cover rounded border border-neutral-300 shadow-2xs"
+                  />
+                  <span className="text-[8px] text-neutral-500 uppercase block mt-0.5 font-bold">
+                    Candidate Photo
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Proposer & Seconder Endorsement */}
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-wider text-neutral-900 border-b border-neutral-300 pb-1 mb-1.5">
+              2. Endorsement by Registered Life Members
+            </h3>
+            <div className="grid grid-cols-2 gap-3 text-[10px]">
+              {/* Proposer */}
+              <div className="p-2.5 rounded bg-neutral-50 border border-neutral-200">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-bold uppercase text-neutral-500 block">
+                      Proposer Particulars:
+                    </span>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Name:</span>{' '}
+                      <strong className="text-neutral-900">
+                        {submitSuccess?.proposerName || formData.proposer.fullName || 'N/A'}
+                      </strong>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Mem No:</span>{' '}
+                      <strong className="font-mono text-neutral-900">
+                        {submitSuccess?.proposerMembership || formData.proposer.membershipNo || 'N/A'}
+                      </strong>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Mobile:</span>{' '}
+                      <span>{submitSuccess?.proposerMobile || formData.proposer.mobile || 'N/A'}</span>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Address:</span>{' '}
+                      <span>{submitSuccess?.proposerAddress || formData.proposer.address || 'N/A'}</span>
+                    </p>
+                  </div>
+                  {(submitSuccess?.proposerPhoto || formData.proposer.photo) && (
+                    <img
+                      src={submitSuccess?.proposerPhoto || formData.proposer.photo}
+                      alt="Proposer"
+                      className="w-14 h-16 object-cover rounded border border-neutral-300 shrink-0"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Seconder */}
+              <div className="p-2.5 rounded bg-neutral-50 border border-neutral-200">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-bold uppercase text-neutral-500 block">
+                      Seconder Particulars:
+                    </span>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Name:</span>{' '}
+                      <strong className="text-neutral-900">
+                        {submitSuccess?.seconderName || formData.seconder.fullName || 'N/A'}
+                      </strong>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Mem No:</span>{' '}
+                      <strong className="font-mono text-neutral-900">
+                        {submitSuccess?.seconderMembership || formData.seconder.membershipNo || 'N/A'}
+                      </strong>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Mobile:</span>{' '}
+                      <span>{submitSuccess?.seconderMobile || formData.seconder.mobile || 'N/A'}</span>
+                    </p>
+                    <p>
+                      <span className="text-neutral-500 font-semibold">Address:</span>{' '}
+                      <span>{submitSuccess?.seconderAddress || formData.seconder.address || 'N/A'}</span>
+                    </p>
+                  </div>
+                  {(submitSuccess?.seconderPhoto || formData.seconder.photo) && (
+                    <img
+                      src={submitSuccess?.seconderPhoto || formData.seconder.photo}
+                      alt="Seconder"
+                      className="w-14 h-16 object-cover rounded border border-neutral-300 shrink-0"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Declaration & Scrutiny Signatures */}
+          <div>
+            <div className="p-2 bg-neutral-50 border border-neutral-200 rounded text-[9.5px] text-neutral-700 italic leading-tight">
+              <strong>Declaration:</strong> &ldquo;I hereby declare that the information provided in this nomination form is true and correct to the best of my knowledge. I am eligible to contest for the selected post as per the election rules and constitution of GCAAA. I agree to abide by the decision of the Election Returning Officer.&rdquo;
+            </div>
+            <div className="grid grid-cols-2 gap-6 pt-4 text-[10px] items-end">
+              <div>
+                <div className="border-b border-neutral-400 pb-1 font-serif italic text-xs font-bold text-neutral-900">
+                  {submitSuccess?.candidateName || formData.candidate.fullName}
+                </div>
+                <span className="text-[9px] font-bold text-neutral-500 uppercase mt-0.5 block">
+                  Digital Signature of Candidate
+                </span>
+              </div>
+              <div className="text-right">
+                <div className="border-b border-neutral-400 pb-1 text-[11px] font-bold text-neutral-800">
+                  Returning Officer (Scrutiny &amp; Seal)
+                </div>
+                <span className="text-[9px] font-bold text-neutral-500 uppercase mt-0.5 block">
+                  For GCAAA Election Committee 2026–2028
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-2 border-t border-neutral-300 text-center text-[8.5px] text-neutral-500 leading-tight">
+            <p>Note: This is an official computer-generated nomination submission receipt. Nomination validity is subject to final voter roll scrutiny.</p>
+            <p className="font-semibold text-neutral-700 mt-0.5">
+              Govt. College of Architecture Alumni Association • FOAP-AKTU Campus, Lucknow • contact.gcaaa@gmail.com
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* SCREEN VIEW */}
+      <div className="print:hidden">
+        {/* Toast Notification */}
+        {toastMessage && (
         <div className="fixed top-20 right-5 z-50 max-w-md animate-in slide-in-from-top-3">
           <div
             className={`p-4 rounded-xl shadow-2xl flex items-center gap-3 border backdrop-blur-md ${
@@ -1538,6 +1774,7 @@ export const ElectionNominationPage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
