@@ -634,10 +634,14 @@ exports.registerAlumni = async (req, res) => {
       status: 'Pending',
     });
 
-    // Send receipt email asynchronously to the registered alumnus
-    sendRegistrationReceiptEmail(newMember).catch((emailErr) => {
-      console.error('[registeredMemberController] Error dispatching registration receipt email:', emailErr);
-    });
+    // Send receipt email to the registered alumnus
+    try {
+      console.log(`[registeredMemberController] 🚀 Sending registration receipt email to: ${newMember.email}`);
+      const emailResult = await sendRegistrationReceiptEmail(newMember);
+      console.log('[registeredMemberController] 📩 Email dispatch result:', emailResult);
+    } catch (emailErr) {
+      console.error('[registeredMemberController] ❌ Error dispatching registration receipt email:', emailErr.message);
+    }
 
     return res.status(201).json({
       success: true,

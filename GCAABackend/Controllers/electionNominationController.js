@@ -214,10 +214,14 @@ exports.submitNomination = async (req, res) => {
       status: 'Submitted',
     });
 
-    // Send nomination receipt email asynchronously to the candidate
-    sendElectionNominationReceiptEmail(newNomination).catch((emailErr) => {
-      console.error('[electionNominationController] Error dispatching nomination receipt email:', emailErr);
-    });
+    // Send nomination receipt email to the candidate
+    try {
+      console.log(`[electionNominationController] 🚀 Sending nomination receipt email to: ${newNomination.candidate?.email}`);
+      const emailResult = await sendElectionNominationReceiptEmail(newNomination);
+      console.log('[electionNominationController] 📩 Email dispatch result:', emailResult);
+    } catch (emailErr) {
+      console.error('[electionNominationController] ❌ Error dispatching nomination receipt email:', emailErr.message);
+    }
 
     return res.status(201).json({
       success: true,
