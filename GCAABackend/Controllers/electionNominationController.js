@@ -1,5 +1,6 @@
 const ElectionNomination = require('../Models/ElectionNomination');
 const { uploadToCloudinary } = require('../Config/cloudinary');
+const { sendElectionNominationReceiptEmail } = require('../Utils/emailService');
 
 /**
  * Helper to upload image (base64 data URI) to Cloudinary or keep as is
@@ -211,6 +212,11 @@ exports.submitNomination = async (req, res) => {
       },
       declarationAgreed: true,
       status: 'Submitted',
+    });
+
+    // Send nomination receipt email asynchronously to the candidate
+    sendElectionNominationReceiptEmail(newNomination).catch((emailErr) => {
+      console.error('[electionNominationController] Error dispatching nomination receipt email:', emailErr);
     });
 
     return res.status(201).json({

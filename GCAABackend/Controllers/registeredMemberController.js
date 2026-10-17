@@ -1,5 +1,6 @@
 const RegisteredMember = require('../Models/RegisteredMember');
 const { uploadToCloudinary } = require('../Config/cloudinary');
+const { sendRegistrationReceiptEmail } = require('../Utils/emailService');
 
 /**
  * @desc    Get all registered members with search, pagination & filtering
@@ -631,6 +632,11 @@ exports.registerAlumni = async (req, res) => {
       photo: uploadedPhotoUrl || '',
       applicantSignature: applicantSignature || fullName,
       status: 'Pending',
+    });
+
+    // Send receipt email asynchronously to the registered alumnus
+    sendRegistrationReceiptEmail(newMember).catch((emailErr) => {
+      console.error('[registeredMemberController] Error dispatching registration receipt email:', emailErr);
     });
 
     return res.status(201).json({
