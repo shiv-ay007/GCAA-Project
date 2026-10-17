@@ -340,7 +340,14 @@ export const Navbar = () => {
                     >
                       Life Membership Registration
                     </Link>
-                    
+                    <Link
+                      to="/election-nomination"
+                      onClick={closeAllMenus}
+                      className="block px-4 py-2 hover:bg-red-600 text-xs text-amber-300 font-bold flex items-center justify-between"
+                    >
+                      <span>Election Nomination 2026</span>
+                      <span className="text-[9px] bg-red-800 text-white font-extrabold px-1.5 py-0.5 rounded">NEW</span>
+                    </Link>
                     <Link
                       to="/alumni-data-list"
                       onClick={closeAllMenus}
@@ -600,6 +607,24 @@ export const Navbar = () => {
                     </span>
                     <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                       Active
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/election-nomination"
+                    onClick={closeAllMenus}
+                    className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors ${
+                      location.pathname === '/election-nomination'
+                        ? 'bg-red-600 text-white font-bold'
+                        : 'text-neutral-700 hover:bg-neutral-200/70 hover:text-red-600'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 font-bold text-[#8B0000]">
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                      Election Nomination 2026-28
+                    </span>
+                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                      New
                     </span>
                   </Link>
                   

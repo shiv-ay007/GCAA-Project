@@ -42,13 +42,13 @@ const MemberTable = ({
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-[#faf9f6] text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-              <th className="py-3 px-4 w-16 text-center">S.No</th>
+              <th className="py-3 px-3 w-14 text-center">S.No</th>
+              <th className="py-3 px-3 w-28 text-center">Actions</th>
               <th className="py-3 px-4">Member Name</th>
               <th className="py-3 px-4">Membership No</th>
               <th className="py-3 px-4">Graduation Year</th>
               <th className="py-3 px-4">Course / Program</th>
               <th className="py-3 px-4 text-center">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -58,8 +58,38 @@ const MemberTable = ({
                 className="transition-colors hover:bg-red-50/20"
               >
                 {/* S.No */}
-                <td className="py-3 px-4 text-center font-mono text-xs text-gray-500 font-medium">
+                <td className="py-3 px-3 text-center font-mono text-xs text-gray-500 font-medium">
                   {member.sno || member.displaySno || idx + 1}
+                </td>
+
+                {/* Actions (Brought forward right after S.No) */}
+                <td className="py-3 px-3 text-center whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onView && onView(member)}
+                      title="View Full Registration Details"
+                      className="rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer"
+                    >
+                      <Eye size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEdit(member)}
+                      title="Edit Member"
+                      className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-[#800018] transition cursor-pointer"
+                    >
+                      <Edit3 size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(member._id)}
+                      title="Delete Member"
+                      className="rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </td>
 
                 {/* Name */}
@@ -145,36 +175,6 @@ const MemberTable = ({
                       </>
                     )}
                   </span>
-                </td>
-
-                {/* Actions */}
-                <td className="py-3 px-4 text-right">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => onView && onView(member)}
-                      title="View Full Registration Details"
-                      className="rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition cursor-pointer"
-                    >
-                      <Eye size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onEdit(member)}
-                      title="Edit Member"
-                      className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-[#800018] transition cursor-pointer"
-                    >
-                      <Edit3 size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(member._id)}
-                      title="Delete Member"
-                      className="rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
                 </td>
               </tr>
             ))}

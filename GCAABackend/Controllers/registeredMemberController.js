@@ -19,8 +19,8 @@ exports.getRegisteredMembers = async (req, res) => {
       order = 'desc',
     } = req.query;
 
-    // Build filter query
-    const filter = {};
+    // Build filter query (exclude soft-deleted records)
+    const filter = { isDeleted: { $ne: true } };
 
     if (search.trim()) {
       const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -121,16 +121,19 @@ exports.getRegisteredMembers = async (req, res) => {
  */
 exports.getMemberStats = async (req, res) => {
   try {
-    const totalMembers = await RegisteredMember.countDocuments();
+    const totalMembers = await RegisteredMember.countDocuments({ isDeleted: { $ne: true } });
     const verifiedMembers = await RegisteredMember.countDocuments({
+      isDeleted: { $ne: true },
       status: { $in: ['Verified', 'Active', 'Paid'] },
     });
     const deceasedMembers = await RegisteredMember.countDocuments({
+      isDeleted: { $ne: true },
       status: 'In Memoriam',
     });
 
     // Breakdown by cohorts
     const cohortBreakdown = await RegisteredMember.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: '$cohort', count: { $sum: 1 } } },
     ]);
 
@@ -160,7 +163,10 @@ exports.getMemberStats = async (req, res) => {
  */
 exports.getMemberById = async (req, res) => {
   try {
-    const member = await RegisteredMember.findById(req.params.id);
+    const member = await RegisteredMember.findOne({
+      _id: req.params.id,
+      isDeleted: { $ne: true },
+    });
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -307,7 +313,11 @@ exports.updateMember = async (req, res) => {
  */
 exports.deleteMember = async (req, res) => {
   try {
-    const member = await RegisteredMember.findByIdAndDelete(req.params.id);
+    const member = await RegisteredMember.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!member) {
       return res.status(404).json({
         success: false,
@@ -317,7 +327,7 @@ exports.deleteMember = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Member record deleted successfully',
+      message: 'Member record soft-deleted successfully',
       data: { id: req.params.id },
     });
   } catch (error) {
@@ -630,6 +640,50 @@ exports.registerAlumni = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to process registration',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Verify membership number existence and details
+ * @route   GET /api/registered-members/verify/:membershipNo
+ * @access  Public
+ */
+exports.verifyMembershipNumber = async (req, res) => {
+  try {
+    const { membershipNo } = req.params;
+    if (!membershipNo || !membershipNo.trim()) {
+      return res.status(400).json({ success: false, message: 'Membership number is required' });
+    }
+    const cleanNo = membershipNo.trim();
+    const member = await RegisteredMember.findOne({
+      membershipNo: { $regex: new RegExp(`^${cleanNo}$`, 'i') },
+    }).select('name membershipNo year course status email mobile');
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        exists: false,
+        message: `Membership No. '${cleanNo}' was not found in registered members database.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      exists: true,
+      data: {
+        name: member.name,
+        membershipNo: member.membershipNo,
+        year: member.year,
+        course: member.course,
+        status: member.status,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify membership number',
       error: error.message,
     });
   }

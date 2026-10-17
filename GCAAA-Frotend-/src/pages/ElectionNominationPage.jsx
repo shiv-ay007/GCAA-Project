@@ -1,0 +1,1543 @@
+import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Vote,
+  CheckCircle2,
+  AlertCircle,
+  Camera,
+  RotateCcw,
+  Send,
+  Loader2,
+  Printer,
+  ShieldCheck,
+  User,
+  Users,
+  FileText,
+  X,
+  ChevronDown,
+  Search,
+  ExternalLink,
+  Check,
+  Gavel,
+} from 'lucide-react';
+import logoImg from '@/assets/images/logo.png';
+import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
+import {
+  submitElectionNomination,
+  verifyMembershipNumber,
+} from '@/Api/electionNominationApi';
+
+// Posts list with details & eligibility rules matching official notification
+export const ELECTION_POSTS = [
+  {
+    sno: 1,
+    post: 'President',
+    seats: '1 Post',
+    eligibility: 'Lifetime Member of GCAAA',
+  },
+  {
+    sno: 2,
+    post: 'Vice President',
+    seats: '1 Post',
+    eligibility: 'Lifetime Member of GCAAA',
+  },
+  {
+    sno: 3,
+    post: 'General Secretary',
+    seats: '1 Post',
+    eligibility: 'Lifetime Member of GCAAA (Residential proof of Lucknow required)',
+  },
+  {
+    sno: 4,
+    post: 'Joint Secretary',
+    seats: '1 Post',
+    eligibility: 'Lifetime Member of GCAAA',
+  },
+  {
+    sno: 5,
+    post: 'Treasurer',
+    seats: '1 Post',
+    eligibility: 'Lifetime Member of GCAAA (Residential proof of Lucknow required)',
+  },
+  {
+    sno: 6,
+    post: 'Executive Member (i)',
+    seats: '1 Post',
+    eligibility: 'Nominated by Partner College',
+  },
+  {
+    sno: 7,
+    post: 'Executive Member (ii)',
+    seats: '2 Posts',
+    eligibility: 'Lifetime Member of GCAAA (Residential proof of Lucknow required)',
+  },
+  {
+    sno: 8,
+    post: 'Executive Member (iii)',
+    seats: '2 Posts',
+    eligibility: 'Lifetime Member of GCAAA',
+  },
+];
+
+const INITIAL_FORM_STATE = {
+  post: '',
+  candidate: {
+    fullName: '',
+    mobile: '',
+    email: '',
+    address: '',
+    membershipNo: '',
+    photo: '',
+    photoName: '',
+  },
+  proposer: {
+    fullName: '',
+    mobile: '',
+    email: '',
+    address: '',
+    membershipNo: '',
+    photo: '',
+    photoName: '',
+  },
+  seconder: {
+    fullName: '',
+    mobile: '',
+    email: '',
+    address: '',
+    membershipNo: '',
+    photo: '',
+    photoName: '',
+  },
+  declarationAgreed: false,
+};
+
+export const ElectionNominationPage = () => {
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gcaaa_election_nomination_draft');
+      return saved ? JSON.parse(saved) : INITIAL_FORM_STATE;
+    } catch {
+      return INITIAL_FORM_STATE;
+    }
+  });
+
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // Live Membership Verification Status
+  const [verificationStatus, setVerificationStatus] = useState({
+    candidate: { loading: false, verified: false, member: null, error: '' },
+    proposer: { loading: false, verified: false, member: null, error: '' },
+    seconder: { loading: false, verified: false, member: null, error: '' },
+  });
+
+  // Auto-save draft in localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('gcaaa_election_nomination_draft', JSON.stringify(formData));
+    } catch {
+      // ignore quota / private browsing errors
+    }
+  }, [formData]);
+
+  // Toast auto-clear
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 6000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Live Membership Number Verifier against Database
+  const checkMembershipNumber = async (section, rawNo) => {
+    const cleanNo = (rawNo || '').trim().toUpperCase();
+    if (!cleanNo) {
+      setVerificationStatus((prev) => ({
+        ...prev,
+        [section]: { loading: false, verified: false, member: null, error: '' },
+      }));
+      return null;
+    }
+
+    setVerificationStatus((prev) => ({
+      ...prev,
+      [section]: { loading: true, verified: false, member: null, error: '' },
+    }));
+
+    try {
+      const res = await verifyMembershipNumber(cleanNo);
+      if (res && res.exists && res.data) {
+        const member = res.data;
+
+        setVerificationStatus((prev) => ({
+          ...prev,
+          [section]: { loading: false, verified: true, member, error: '' },
+        }));
+
+        // Resolve member details
+        let resolvedName = member.name || '';
+        if (!resolvedName && (member.firstName || member.lastName)) {
+          resolvedName = [member.salutation, member.firstName, member.middleName, member.lastName]
+            .filter(Boolean)
+            .join(' ');
+        }
+
+        const resolvedMobile = (
+          member.mobile ||
+          member.residenceAddress?.phone ||
+          member.officeAddress?.phone ||
+          ''
+        )
+          .replace(/\D/g, '')
+          .slice(0, 10);
+
+        const resolvedEmail = member.email || '';
+
+        let resolvedAddress = '';
+        if (typeof member.address === 'string' && member.address.trim()) {
+          resolvedAddress = member.address.trim();
+        } else if (member.residenceAddress) {
+          resolvedAddress = [
+            member.residenceAddress.street,
+            member.residenceAddress.city,
+            member.residenceAddress.country,
+          ]
+            .filter(Boolean)
+            .join(', ');
+        } else if (member.officeAddress) {
+          resolvedAddress = [member.officeAddress.street, member.officeAddress.city]
+            .filter(Boolean)
+            .join(', ');
+        }
+
+        // Auto-fill member details into form
+        setFormData((prev) => ({
+          ...prev,
+          [section]: {
+            ...prev[section],
+            fullName: resolvedName || prev[section].fullName,
+            mobile: resolvedMobile || prev[section].mobile,
+            email: resolvedEmail || prev[section].email,
+            address: resolvedAddress || prev[section].address,
+          },
+        }));
+
+        // Clear field errors for auto-filled fields
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          delete next[`${section}.membershipNo`];
+          if (resolvedName) delete next[`${section}.fullName`];
+          if (resolvedMobile) delete next[`${section}.mobile`];
+          if (resolvedEmail) delete next[`${section}.email`];
+          if (resolvedAddress) delete next[`${section}.address`];
+          return next;
+        });
+
+        setToastMessage({
+          type: 'success',
+          text: `Verified: ${resolvedName || cleanNo}! Details have been auto-filled.`,
+        });
+
+        return member;
+      }
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        `Membership No. '${cleanNo}' was not found in registered members database.`;
+      setVerificationStatus((prev) => ({
+        ...prev,
+        [section]: { loading: false, verified: false, member: null, error: msg },
+      }));
+      setFieldErrors((prev) => ({
+        ...prev,
+        [`${section}.membershipNo`]: msg,
+      }));
+      return null;
+    }
+  };
+
+  // Handle text input changes
+  const handleInputChange = (section, field, value) => {
+    if (section === 'root') {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      }));
+
+      // If membership number changed, reset verified state
+      if (field === 'membershipNo') {
+        setVerificationStatus((prev) => ({
+          ...prev,
+          [section]: { loading: false, verified: false, member: null, error: '' },
+        }));
+      }
+    }
+
+    // Clear error for field
+    const errorKey = section === 'root' ? field : `${section}.${field}`;
+    if (fieldErrors[errorKey]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[errorKey];
+        return next;
+      });
+    }
+  };
+
+  // Handle Photo upload with base64 conversion & validation (Max 2MB)
+  const handlePhotoUpload = (section, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setToastMessage({
+        type: 'error',
+        text: 'Please select an image file (JPG, PNG or WEBP).',
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setToastMessage({
+        type: 'error',
+        text: 'Image size exceeds 10MB limit. Please upload a smaller photo.',
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      setFormData((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          photo: base64,
+          photoName: file.name,
+        },
+      }));
+
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[`${section}.photo`];
+        return next;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removePhoto = (section) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        photo: '',
+        photoName: '',
+      },
+    }));
+  };
+
+  // Validation function
+  const validateForm = async () => {
+    const errors = {};
+
+    if (!formData.post) {
+      errors['post'] = 'Please select the post you are applying for.';
+    }
+
+    // Candidate validation
+    if (!formData.candidate.fullName.trim()) {
+      errors['candidate.fullName'] = 'Candidate Full Name is required';
+    }
+    if (!formData.candidate.mobile.trim()) {
+      errors['candidate.mobile'] = 'Candidate Mobile Number is required';
+    } else if (!/^[0-9]{10}$/.test(formData.candidate.mobile.trim())) {
+      errors['candidate.mobile'] = 'Enter valid 10-digit mobile number';
+    }
+    if (!formData.candidate.email.trim()) {
+      errors['candidate.email'] = 'Candidate Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.candidate.email.trim())) {
+      errors['candidate.email'] = 'Enter valid email address';
+    }
+    if (!formData.candidate.address.trim()) {
+      errors['candidate.address'] = 'Candidate Address is required';
+    }
+    if (!formData.candidate.membershipNo.trim()) {
+      errors['candidate.membershipNo'] = 'Candidate GCAAA Membership Number is required';
+    }
+    if (!formData.candidate.photo) {
+      errors['candidate.photo'] = 'Candidate photograph is mandatory';
+    }
+
+    // Proposer validation
+    if (!formData.proposer.fullName.trim()) {
+      errors['proposer.fullName'] = 'Proposer Full Name is required';
+    }
+    if (!formData.proposer.mobile.trim()) {
+      errors['proposer.mobile'] = 'Proposer Mobile is required';
+    } else if (!/^[0-9]{10}$/.test(formData.proposer.mobile.trim())) {
+      errors['proposer.mobile'] = 'Enter valid 10-digit mobile number';
+    }
+    if (!formData.proposer.address.trim()) {
+      errors['proposer.address'] = 'Proposer Address is required';
+    }
+    if (!formData.proposer.membershipNo.trim()) {
+      errors['proposer.membershipNo'] = 'Proposer Membership No. is required';
+    }
+
+    // Seconder validation
+    if (!formData.seconder.fullName.trim()) {
+      errors['seconder.fullName'] = 'Seconder Full Name is required';
+    }
+    if (!formData.seconder.mobile.trim()) {
+      errors['seconder.mobile'] = 'Seconder Mobile is required';
+    } else if (!/^[0-9]{10}$/.test(formData.seconder.mobile.trim())) {
+      errors['seconder.mobile'] = 'Enter valid 10-digit mobile number';
+    }
+    if (!formData.seconder.address.trim()) {
+      errors['seconder.address'] = 'Seconder Address is required';
+    }
+    if (!formData.seconder.membershipNo.trim()) {
+      errors['seconder.membershipNo'] = 'Seconder Membership No. is required';
+    }
+
+    // Declaration validation
+    if (!formData.declarationAgreed) {
+      errors['declarationAgreed'] = 'You must accept the election declaration statement';
+    }
+
+    // Uniqueness validation among Candidate, Proposer, and Seconder
+    const cNo = formData.candidate.membershipNo.trim().toUpperCase();
+    const pNo = formData.proposer.membershipNo.trim().toUpperCase();
+    const sNo = formData.seconder.membershipNo.trim().toUpperCase();
+
+    if (cNo && pNo && cNo === pNo) {
+      errors['proposer.membershipNo'] =
+        'Proposer cannot have the same GCAAA Membership Number as Candidate.';
+    }
+    if (cNo && sNo && cNo === sNo) {
+      errors['seconder.membershipNo'] =
+        'Seconder cannot have the same GCAAA Membership Number as Candidate.';
+    }
+    if (pNo && sNo && pNo === sNo) {
+      errors['seconder.membershipNo'] =
+        'Proposer and Seconder cannot have the same GCAAA Membership Number.';
+    }
+
+    // Live Database Existence Verification for all 3 numbers
+    if (cNo && !errors['candidate.membershipNo']) {
+      const verifiedCand = verificationStatus.candidate.verified
+        ? verificationStatus.candidate.member
+        : await checkMembershipNumber('candidate', cNo);
+      if (!verifiedCand) {
+        errors['candidate.membershipNo'] = `Membership No. '${cNo}' is not registered in GCAAA database.`;
+      }
+    }
+
+    if (pNo && !errors['proposer.membershipNo']) {
+      const verifiedProp = verificationStatus.proposer.verified
+        ? verificationStatus.proposer.member
+        : await checkMembershipNumber('proposer', pNo);
+      if (!verifiedProp) {
+        errors['proposer.membershipNo'] = `Proposer Membership No. '${pNo}' is not registered in GCAAA database.`;
+      }
+    }
+
+    if (sNo && !errors['seconder.membershipNo']) {
+      const verifiedSec = verificationStatus.seconder.verified
+        ? verificationStatus.seconder.member
+        : await checkMembershipNumber('seconder', sNo);
+      if (!verifiedSec) {
+        errors['seconder.membershipNo'] = `Seconder Membership No. '${sNo}' is not registered in GCAAA database.`;
+      }
+    }
+
+    return errors;
+  };
+
+  // Reset form
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the form? All entered details will be cleared.')) {
+      setFormData(INITIAL_FORM_STATE);
+      setFieldErrors({});
+      setVerificationStatus({
+        candidate: { loading: false, verified: false, member: null, error: '' },
+        proposer: { loading: false, verified: false, member: null, error: '' },
+        seconder: { loading: false, verified: false, member: null, error: '' },
+      });
+      localStorage.removeItem('gcaaa_election_nomination_draft');
+      setToastMessage({ type: 'info', text: 'Form has been reset.' });
+    }
+  };
+
+  // Form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setToastMessage(null);
+
+    const errors = await validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setIsSubmitting(false);
+      setToastMessage({
+        type: 'error',
+        text: 'Validation failed. Please fill all mandatory fields and ensure verified membership numbers.',
+      });
+      window.scrollTo({ top: 380, behavior: 'smooth' });
+      return;
+    }
+
+    try {
+      const response = await submitElectionNomination(formData);
+      const generatedId = response.nominationId || `GCA-NOM-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      setSubmitSuccess({
+        nominationId: generatedId,
+        post: formData.post,
+        candidateName: formData.candidate.fullName,
+        candidateMembership: formData.candidate.membershipNo,
+        candidateMobile: formData.candidate.mobile,
+        candidateEmail: formData.candidate.email,
+        candidatePhoto: formData.candidate.photo,
+        proposerName: formData.proposer.fullName,
+        proposerMembership: formData.proposer.membershipNo,
+        seconderName: formData.seconder.fullName,
+        seconderMembership: formData.seconder.membershipNo,
+        submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      });
+
+      localStorage.removeItem('gcaaa_election_nomination_draft');
+    } catch (error) {
+      console.warn('Backend submission error:', error);
+      const errDetail =
+        error.response?.data?.message ||
+        'Failed to submit nomination. Please ensure all membership numbers are registered in GCAAA records.';
+
+      setToastMessage({
+        type: 'error',
+        text: errDetail,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectedPostObj = ELECTION_POSTS.find((p) => p.post === formData.post);
+
+  // Reusable Membership Number Field with inline verification indicator
+  const renderMembershipInput = (section, label) => {
+    const status = verificationStatus[section];
+    const value = formData[section].membershipNo;
+    const error = fieldErrors[`${section}.membershipNo`];
+
+    return (
+      <div>
+        <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+          {label} <span className="text-red-600 font-black">*</span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="e.g. U15289, U41001, LM-124"
+            value={value}
+            onBlur={() => checkMembershipNumber(section, value)}
+            onChange={(e) =>
+              handleInputChange(section, 'membershipNo', e.target.value.toUpperCase())
+            }
+            className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white pr-20 ${
+              error
+                ? 'border-red-500 bg-red-50/50'
+                : status.verified
+                ? 'border-emerald-500 bg-emerald-50/30'
+                : 'border-neutral-300'
+            }`}
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+            {status.loading ? (
+              <span className="text-[10px] text-neutral-500 flex items-center gap-1 px-1.5 py-0.5 bg-neutral-200/80 rounded">
+                <Loader2 className="w-3 h-3 animate-spin text-[#8B0000]" />
+                Checking
+              </span>
+            ) : status.verified ? (
+              <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1 px-2 py-0.5 bg-emerald-100 rounded border border-emerald-300">
+                <Check className="w-3 h-3" />
+                Verified
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => checkMembershipNumber(section, value)}
+                disabled={!value.trim()}
+                className="text-[10px] bg-neutral-200 hover:bg-[#8B0000] hover:text-white disabled:opacity-40 text-neutral-800 font-bold px-2 py-1 rounded transition-colors cursor-pointer"
+              >
+                Verify
+              </button>
+            )}
+          </div>
+        </div>
+
+        {status.verified && status.member && (
+          <p className="text-[11px] text-emerald-700 font-medium mt-1 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span>
+              Verified: <strong>{status.member.name}</strong> ({status.member.year || 'Alumnus'})
+            </span>
+          </p>
+        )}
+
+        {error && (
+          <p className="text-xs text-red-600 font-semibold mt-1 flex items-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full bg-[#f8fafc] text-neutral-900 min-h-screen pb-20 selection:bg-red-600 selection:text-white">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-5 z-50 max-w-md animate-in slide-in-from-top-3">
+          <div
+            className={`p-4 rounded-xl shadow-2xl flex items-center gap-3 border backdrop-blur-md ${
+              toastMessage.type === 'error'
+                ? 'bg-red-950/95 text-red-100 border-red-700/80'
+                : toastMessage.type === 'info'
+                ? 'bg-blue-950/95 text-blue-100 border-blue-700/80'
+                : 'bg-emerald-950/95 text-emerald-100 border-emerald-700/80'
+            }`}
+          >
+            {toastMessage.type === 'error' ? (
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            )}
+            <p className="text-xs sm:text-sm font-medium">{toastMessage.text}</p>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="ml-auto text-neutral-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          1. SLEEK MINIMAL HERO BANNER (No buttons, exactly like reference)
+      ======================================================== */}
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus Image */}
+        <img
+          src={buildingHeroImg}
+          alt="Government College of Architecture"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            Election Nomination
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">ELECTION NOMINATION</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          2. MAIN FORM CONTAINER (Exact Navbar Width: max-w-[1400px])
+      ======================================================== */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-6 sm:mt-8">
+        {/* Top Dark Banner Card (Matching Reference Image) */}
+        <div className="relative overflow-hidden rounded-2xl bg-neutral-900 text-white p-5 sm:p-6 mb-6 shadow-md border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <Gavel className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-amber-400 block font-serif">
+                GOVERNMENT COLLEGE OF ARCHITECTURE ALUMNI ASSOCIATION
+              </span>
+              <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-white font-serif mt-0.5">
+                Election Nomination Form
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1 max-w-2xl">
+                Executive Body Election 2026 – 2028 · Please provide accurate candidate, proposer and
+                seconder information along with required supporting documents.
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
+            <img src={logoImg} alt="GCAAA Logo" className="h-12 w-auto object-contain opacity-90" />
+          </div>
+        </div>
+
+        {/* Main Form Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ========================================================
+              CARD 01: ELECTION DETAILS
+          ======================================================== */}
+          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-5">
+            <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
+              <span className="w-8 h-8 rounded-lg bg-neutral-900 text-white font-black text-xs flex items-center justify-center shrink-0">
+                01
+              </span>
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">Election Details</h3>
+                <p className="text-xs text-neutral-500">
+                  Select the post and view candidate eligibility guidelines
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+              {/* Post Applied For */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                  Post Applied For <span className="text-red-600 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.post}
+                    onChange={(e) => handleInputChange('root', 'post', e.target.value)}
+                    className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white appearance-none pr-10 ${
+                      fieldErrors['post'] ? 'border-red-500 bg-red-50/50' : 'border-neutral-300'
+                    }`}
+                  >
+                    <option value="">-- Select Post --</option>
+                    {ELECTION_POSTS.map((item) => (
+                      <option key={item.post} value={item.post}>
+                        {item.post} ({item.seats}) — {item.eligibility}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                {fieldErrors['post'] && (
+                  <p className="text-xs text-red-600 font-semibold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {fieldErrors['post']}
+                  </p>
+                )}
+              </div>
+
+              {/* Tenure & Eligibility Chip */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                  Tenure / Term
+                </label>
+                <div className="px-3.5 py-2.5 bg-neutral-100 rounded-lg border border-neutral-300 text-sm font-semibold text-neutral-700">
+                  Executive Committee Term (2026 – 2028)
+                </div>
+              </div>
+            </div>
+
+            {selectedPostObj && (
+              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Eligibility Requirement for {selectedPostObj.post}:</strong>{' '}
+                  {selectedPostObj.eligibility}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* ========================================================
+              CARD 02: CANDIDATE DETAILS
+          ======================================================== */}
+          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-5">
+            <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
+              <span className="w-8 h-8 rounded-lg bg-neutral-900 text-white font-black text-xs flex items-center justify-center shrink-0">
+                02
+              </span>
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">Candidate Details</h3>
+                <p className="text-xs text-neutral-500">
+                  Enter candidate's official registration and contact details
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+              {/* Left 3 Columns: Text Inputs */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Candidate Name <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full name"
+                      value={formData.candidate.fullName}
+                      onChange={(e) => handleInputChange('candidate', 'fullName', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['candidate.fullName']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['candidate.fullName'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['candidate.fullName']}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Membership Number */}
+                  {renderMembershipInput('candidate', 'GCAAA Membership No.')}
+
+                  {/* Mobile No. */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Mobile No. <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={formData.candidate.mobile}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'candidate',
+                          'mobile',
+                          e.target.value.replace(/\D/g, '')
+                        )
+                      }
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['candidate.mobile']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['candidate.mobile'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['candidate.mobile']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Email Address <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={formData.candidate.email}
+                      onChange={(e) => handleInputChange('candidate', 'email', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['candidate.email']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['candidate.email'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['candidate.email']}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Complete Address <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full address"
+                      value={formData.candidate.address}
+                      onChange={(e) => handleInputChange('candidate', 'address', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['candidate.address']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['candidate.address'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['candidate.address']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Candidate Photograph Upload */}
+              <div className="flex flex-col items-center justify-center">
+                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
+                  Photograph <span className="text-red-600 font-black">*</span>
+                </label>
+                <div
+                  className={`relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
+                    fieldErrors['candidate.photo']
+                      ? 'border-red-500 bg-red-50/40'
+                      : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-red-400'
+                  }`}
+                >
+                  {formData.candidate.photo ? (
+                    <div className="relative w-full h-full group">
+                      <img
+                        src={formData.candidate.photo}
+                        alt="Candidate preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                        <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
+                          Change
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => handlePhotoUpload('candidate', e)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto('candidate')}
+                          className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded shadow hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                      <div className="relative mb-2">
+                        <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                          <Camera className="w-5 h-5" />
+                        </div>
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
+                          +
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                      <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload('candidate', e)}
+                      />
+                    </label>
+                  )}
+                </div>
+                {fieldErrors['candidate.photo'] && (
+                  <p className="text-xs text-red-600 font-semibold mt-1 text-center">
+                    {fieldErrors['candidate.photo']}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================
+              CARD 03: PROPOSER DETAILS
+          ======================================================== */}
+          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-5">
+            <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
+              <span className="w-8 h-8 rounded-lg bg-neutral-900 text-white font-black text-xs flex items-center justify-center shrink-0">
+                03
+              </span>
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">Proposer Details</h3>
+                <p className="text-xs text-neutral-500">
+                  Enter proposer's official registration and contact details
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+              <div className="lg:col-span-3 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Proposer Name <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full name"
+                      value={formData.proposer.fullName}
+                      onChange={(e) => handleInputChange('proposer', 'fullName', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['proposer.fullName']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['proposer.fullName'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['proposer.fullName']}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Membership Number */}
+                  {renderMembershipInput('proposer', 'GCAAA Membership No.')}
+
+                  {/* Mobile No. */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Mobile No. <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={formData.proposer.mobile}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'proposer',
+                          'mobile',
+                          e.target.value.replace(/\D/g, '')
+                        )
+                      }
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['proposer.mobile']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['proposer.mobile'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['proposer.mobile']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Email Address <span className="text-neutral-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={formData.proposer.email}
+                      onChange={(e) => handleInputChange('proposer', 'email', e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border border-neutral-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white"
+                    />
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Complete Address <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full address"
+                      value={formData.proposer.address}
+                      onChange={(e) => handleInputChange('proposer', 'address', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['proposer.address']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['proposer.address'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['proposer.address']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Proposer Photograph Upload (Optional) */}
+              <div className="flex flex-col items-center justify-center">
+                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
+                  Photograph <span className="text-neutral-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 hover:bg-neutral-100 flex flex-col items-center justify-center p-2 text-center transition-all">
+                  {formData.proposer.photo ? (
+                    <div className="relative w-full h-full group">
+                      <img
+                        src={formData.proposer.photo}
+                        alt="Proposer preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                        <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
+                          Change
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => handlePhotoUpload('proposer', e)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto('proposer')}
+                          className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded shadow hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                      <div className="relative mb-2">
+                        <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                          <Camera className="w-5 h-5" />
+                        </div>
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
+                          +
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                      <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload('proposer', e)}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================
+              CARD 04: SECONDER DETAILS
+          ======================================================== */}
+          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-5">
+            <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
+              <span className="w-8 h-8 rounded-lg bg-neutral-900 text-white font-black text-xs flex items-center justify-center shrink-0">
+                04
+              </span>
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">Seconder Details</h3>
+                <p className="text-xs text-neutral-500">
+                  Enter seconder's official registration and contact details
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+              <div className="lg:col-span-3 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Seconder Name <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full name"
+                      value={formData.seconder.fullName}
+                      onChange={(e) => handleInputChange('seconder', 'fullName', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['seconder.fullName']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['seconder.fullName'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['seconder.fullName']}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Membership Number */}
+                  {renderMembershipInput('seconder', 'GCAAA Membership No.')}
+
+                  {/* Mobile No. */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Mobile No. <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={formData.seconder.mobile}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'seconder',
+                          'mobile',
+                          e.target.value.replace(/\D/g, '')
+                        )
+                      }
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['seconder.mobile']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['seconder.mobile'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['seconder.mobile']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Email Address <span className="text-neutral-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={formData.seconder.email}
+                      onChange={(e) => handleInputChange('seconder', 'email', e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border border-neutral-300 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white"
+                    />
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
+                      Complete Address <span className="text-red-600 font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter full address"
+                      value={formData.seconder.address}
+                      onChange={(e) => handleInputChange('seconder', 'address', e.target.value)}
+                      className={`w-full px-3.5 py-2.5 bg-neutral-50 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white ${
+                        fieldErrors['seconder.address']
+                          ? 'border-red-500 bg-red-50/50'
+                          : 'border-neutral-300'
+                      }`}
+                    />
+                    {fieldErrors['seconder.address'] && (
+                      <p className="text-xs text-red-600 font-semibold mt-1">
+                        {fieldErrors['seconder.address']}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Seconder Photograph Upload (Optional) */}
+              <div className="flex flex-col items-center justify-center">
+                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
+                  Photograph <span className="text-neutral-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 hover:bg-neutral-100 flex flex-col items-center justify-center p-2 text-center transition-all">
+                  {formData.seconder.photo ? (
+                    <div className="relative w-full h-full group">
+                      <img
+                        src={formData.seconder.photo}
+                        alt="Seconder preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                        <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
+                          Change
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => handlePhotoUpload('seconder', e)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto('seconder')}
+                          className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded shadow hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                      <div className="relative mb-2">
+                        <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                          <Camera className="w-5 h-5" />
+                        </div>
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
+                          +
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                      <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload('seconder', e)}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================
+              CARD 05: DECLARATION & SUBMISSION
+              (Know Your GCAAA Number button placed ONLY HERE as requested)
+          ======================================================== */}
+          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-6">
+            <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
+              <span className="w-8 h-8 rounded-lg bg-neutral-900 text-white font-black text-xs flex items-center justify-center shrink-0">
+                05
+              </span>
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">Declaration &amp; Submission</h3>
+                <p className="text-xs text-neutral-500">
+                  Review terms and submit official election nomination
+                </p>
+              </div>
+            </div>
+
+            {/* Declaration Checkbox */}
+            <div
+              className={`p-4 rounded-xl border transition-all ${
+                fieldErrors['declarationAgreed']
+                  ? 'border-red-500 bg-red-50/50'
+                  : 'border-neutral-200 bg-neutral-50'
+              }`}
+            >
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.declarationAgreed}
+                  onChange={(e) =>
+                    handleInputChange('root', 'declarationAgreed', e.target.checked)
+                  }
+                  className="mt-1 w-4 h-4 text-red-600 border-neutral-300 rounded focus:ring-red-600 cursor-pointer"
+                />
+                <span className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-medium">
+                  I hereby declare that the information provided in this form is true and correct to the
+                  best of my knowledge. I am eligible to contest for the selected post as per the election
+                  rules of GCAAA.
+                </span>
+              </label>
+              {fieldErrors['declarationAgreed'] && (
+                <p className="text-xs text-red-600 font-semibold mt-2 pl-7 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {fieldErrors['declarationAgreed']}
+                </p>
+              )}
+            </div>
+
+            {/* SINGLE MINIMAL "KNOW YOUR GCAAA NUMBER" BUTTON RIGHT ABOVE SUBMIT */}
+            <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-xs text-neutral-600 flex items-center gap-2">
+                <Search className="w-4 h-4 text-[#8B0000] shrink-0" />
+                <span>
+                  Don't know your or your proposer/seconder's GCAAA Membership Number? Look up in the directory.
+                </span>
+              </div>
+              <Link
+                to="/registered-members"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-neutral-900 hover:bg-[#8B0000] text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm shrink-0 cursor-pointer"
+              >
+                <span>Know Your GCAAA Number</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {/* Action Buttons: Reset & Submit */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full sm:w-auto px-5 py-2.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Reset Form</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 py-3 bg-[#8B0000] hover:bg-red-800 disabled:bg-neutral-400 text-white rounded-xl text-xs sm:text-sm font-extrabold uppercase tracking-wider shadow-lg shadow-red-950/30 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying &amp; Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Submit Nomination</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {/* ========================================================
+          SUCCESS / CONFIRMATION MODAL & RECEIPT
+      ======================================================== */}
+      {submitSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl bg-white text-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden max-h-[92vh] flex flex-col animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="bg-[#8B0000] text-white p-5 text-center relative shrink-0">
+              <button
+                onClick={() => setSubmitSuccess(null)}
+                className="absolute top-4 right-4 text-white/80 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 border border-white/20">
+                <CheckCircle2 className="w-7 h-7 text-emerald-300" />
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight">
+                Nomination Submitted Successfully!
+              </h3>
+              <p className="text-xs text-amber-200 font-medium mt-0.5">
+                GCAAA Executive Body Election 2026 – 2028
+              </p>
+            </div>
+
+            {/* Printable Receipt Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 bg-neutral-100 rounded-xl border border-neutral-200 gap-2">
+                <div>
+                  <span className="text-[11px] text-neutral-500 uppercase tracking-wider block font-semibold">
+                    Nomination Reference ID
+                  </span>
+                  <span className="text-base sm:text-lg font-black text-[#8B0000] font-mono tracking-wider">
+                    {submitSuccess.nominationId}
+                  </span>
+                </div>
+                <div className="text-left sm:text-right">
+                  <span className="text-[11px] text-neutral-500 uppercase tracking-wider block font-semibold">
+                    Submission Timestamp
+                  </span>
+                  <span className="font-semibold text-neutral-800">
+                    {submitSuccess.submittedAt}
+                  </span>
+                </div>
+              </div>
+
+              {/* Candidate Info Summary */}
+              <div className="border border-neutral-200 rounded-xl p-4 space-y-3">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-[#8B0000] flex items-center gap-1.5 border-b pb-2">
+                  <User className="w-4 h-4" />
+                  Candidate Particulars
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-neutral-500 block text-[11px]">Post Applied For:</span>
+                    <strong className="text-neutral-900">{submitSuccess.post}</strong>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block text-[11px]">Full Name:</span>
+                    <strong className="text-neutral-900">{submitSuccess.candidateName}</strong>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block text-[11px]">GCAAA Membership No:</span>
+                    <strong className="font-mono text-neutral-900">
+                      {submitSuccess.candidateMembership}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block text-[11px]">Mobile / Email:</span>
+                    <span className="text-neutral-800">
+                      {submitSuccess.candidateMobile} · {submitSuccess.candidateEmail}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Endorsements Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="border border-neutral-200 rounded-xl p-3.5 space-y-1">
+                  <h5 className="font-bold text-[11px] uppercase tracking-wider text-neutral-600">
+                    Proposer
+                  </h5>
+                  <p className="font-bold text-neutral-900">{submitSuccess.proposerName}</p>
+                  <p className="text-neutral-600 font-mono text-[11px]">
+                    Mem: {submitSuccess.proposerMembership}
+                  </p>
+                </div>
+                <div className="border border-neutral-200 rounded-xl p-3.5 space-y-1">
+                  <h5 className="font-bold text-[11px] uppercase tracking-wider text-neutral-600">
+                    Seconder
+                  </h5>
+                  <p className="font-bold text-neutral-900">{submitSuccess.seconderName}</p>
+                  <p className="text-neutral-600 font-mono text-[11px]">
+                    Mem: {submitSuccess.seconderMembership}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs">
+                <p className="font-bold flex items-center gap-1.5 mb-0.5">
+                  <ShieldCheck className="w-4 h-4 text-amber-700" />
+                  Official Note:
+                </p>
+                <p>
+                  Your nomination has been recorded. The Election Returning Officer will verify
+                  the lifetime membership status and residential proofs before publishing the final
+                  valid nominations list.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 bg-neutral-50 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="w-full sm:w-auto px-4 py-2 border border-neutral-300 hover:bg-neutral-100 rounded-lg font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print / Save Receipt</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitSuccess(null);
+                  setFormData(INITIAL_FORM_STATE);
+                }}
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#8B0000] hover:bg-red-800 text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

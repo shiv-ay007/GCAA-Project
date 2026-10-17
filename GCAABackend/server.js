@@ -10,19 +10,21 @@ const corsOptions = require('./Utils/corsOptions');
 const registeredMemberRoutes = require('./Routes/registeredMemberRoutes');
 const batchAlumniRoutes = require('./Routes/batchAlumniRoutes');
 const adminAuthRoutes = require('./Routes/adminAuthRoutes');
+const electionNominationRoutes = require('./Routes/electionNominationRoutes');
 const { seedDefaultAdmin } = require('./Controllers/adminAuthController');
 
 const app = express();
 
 // Security & Middleware
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // API Routes
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/registered-members', registeredMemberRoutes);
 app.use('/api/batch-alumni', batchAlumniRoutes);
+app.use('/api/election-nominations', electionNominationRoutes);
 
 // Health check & Root route
 app.get('/', (req, res) => {

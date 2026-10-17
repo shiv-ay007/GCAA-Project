@@ -11,6 +11,7 @@ import { AlumniDataListPage } from '@/pages/AlumniDataListPage';
 import { RegisteredMembersPage } from '@/pages/RegisteredMembersPage';
 import { PublicationsPage } from '@/pages/PublicationsPage';
 import { BlogPage } from '@/pages/BlogPage';
+import { ElectionNominationPage } from '@/pages/ElectionNominationPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 export const AppRoutes = () => {
@@ -25,6 +26,9 @@ export const AppRoutes = () => {
         <Route path="committee/:section" element={<CommitteePage />} />
         <Route path="registration" element={<AlumniRegistrationPage />} />
         <Route path="alumni-registration" element={<AlumniRegistrationPage />} />
+        <Route path="election-nomination" element={<ElectionNominationPage />} />
+        <Route path="nomination-form" element={<ElectionNominationPage />} />
+        <Route path="election" element={<ElectionNominationPage />} />
         <Route path="alumni-data-list" element={<AlumniDataListPage />} />
         <Route path="registered-members" element={<RegisteredMembersPage />} />
         <Route path="members-list" element={<RegisteredMembersPage />} />

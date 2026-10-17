@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 
-// ✅ Shared class — ALL 4 pills same, compact size
+// ✅ Shared class — ALL 4 pills same size, NO hover movement
 const PILL_BASE =
   "group relative bg-[#B70D2B] hover:bg-red-700 text-white font-black text-[10px] sm:text-[11px] tracking-widest uppercase " +
-  "w-8 sm:w-9 h-[100px] sm:h-[110px] " + // ✅ Chhoti height — same for all 4 pills
+  "w-9 sm:w-10 h-[120px] sm:h-[135px] " + // ✅ Thoda bada size
   "flex items-center justify-center " +
   "shadow-xl shadow-red-950/40 border-red-500/80 " +
-  "transition-all duration-300 hover:shadow-red-600/60 cursor-pointer";
+  "transition-colors duration-300 hover:shadow-red-600/60 cursor-pointer overflow-hidden";
 
 export const FloatingSidePills = () => {
   return (
@@ -15,26 +15,26 @@ export const FloatingSidePills = () => {
           1. LEFT SIDE FLOATING ACTION PILLS
       ======================================================== */}
       <div className="hidden md:flex fixed left-0 top-[48%] -translate-y-1/2 z-30 flex-col gap-3 pointer-events-auto">
-        {/* Left Pill 1: Dharohar 2026 */}
+        {/* Left Pill 1: Election 2026 Nomination */}
         <Link
-          to="/events"
-          title="Dharohar 2026 Alumni Meet"
-          className={`${PILL_BASE} rounded-r-xl border-r-2 border-y-2 hover:translate-x-1.5`}
+          to="/election-nomination"
+          title="GCAAA Executive Body Election 2026 - 2028 Nomination Form"
+          className={`${PILL_BASE} rounded-r-2xl border-r-2 border-y-2`}
         >
           <span
             style={{ writingMode: 'vertical-rl' }}
-            className="rotate-180 tracking-widest whitespace-nowrap font-extrabold"
+            className="rotate-180 tracking-widest whitespace-nowrap font-extrabold text-amber-200"
           >
-            Dharohar 2026
+            Election 2026
           </span>
-          <span className="absolute inset-y-0 right-0 w-0.5 bg-red-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+          <span className="absolute inset-y-0 right-0 w-0.5 bg-amber-400 opacity-80 group-hover:opacity-100 transition-opacity" />
         </Link>
 
         {/* Left Pill 2: Photo Gallery & Archives */}
         <Link
           to="/gallery"
           title="GCAAA Photo Gallery & Memories"
-          className={`${PILL_BASE} rounded-r-xl border-r-2 border-y-2 hover:translate-x-1.5`}
+          className={`${PILL_BASE} rounded-r-2xl border-r-2 border-y-2`}
         >
           <span
             style={{ writingMode: 'vertical-rl' }}
@@ -54,7 +54,7 @@ export const FloatingSidePills = () => {
         <Link
           to="/registration"
           title="Alumni Registration & Life Membership"
-          className={`${PILL_BASE} rounded-l-xl border-l-2 border-y-2 hover:-translate-x-1.5`}
+          className={`${PILL_BASE} rounded-l-2xl border-l-2 border-y-2`}
         >
           <span
             style={{ writingMode: 'vertical-rl' }}
@@ -69,7 +69,7 @@ export const FloatingSidePills = () => {
         <Link
           to="/committee"
           title="Executive Committee & Advisory Board"
-          className={`${PILL_BASE} rounded-l-xl border-l-2 border-y-2 hover:-translate-x-1.5`}
+          className={`${PILL_BASE} rounded-l-2xl border-l-2 border-y-2`}
         >
           <span
             style={{ writingMode: 'vertical-rl' }}

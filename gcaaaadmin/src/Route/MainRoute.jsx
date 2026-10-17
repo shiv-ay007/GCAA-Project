@@ -5,6 +5,7 @@ import MainLayout from '../Layout/MainLayout'
 import Dashboard from '../Pages/Dashboard'
 import RegisteredMembers from '../Pages/RegisteredMembers'
 import Alumni from '../Pages/Alumni'
+import ElectionNominations from '../Pages/ElectionNominations'
 import Events from '../Pages/Events'
 import Gallery from '../Pages/Gallery'
 import Publications from '../Pages/Publications'
@@ -48,6 +49,7 @@ const MainRoute = () => {
         <Route path="/registered-members" element={<RegisteredMembers />} />
         <Route path="/all-batches" element={<Alumni />} />
         <Route path="/alumni" element={<Alumni />} />
+        <Route path="/election-nominations" element={<ElectionNominations />} />
         <Route path="/events" element={<Events />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/publications" element={<Publications />} />

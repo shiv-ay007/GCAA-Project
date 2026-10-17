@@ -9,7 +9,11 @@ const {
   deleteMember,
   bulkSeedMembers,
   registerAlumni,
+  verifyMembershipNumber,
 } = require('../Controllers/registeredMemberController');
+
+// Verification Endpoint
+router.get('/verify/:membershipNo', verifyMembershipNumber);
 
 // Public Alumni Registration Endpoint
 router.post('/register', registerAlumni);
