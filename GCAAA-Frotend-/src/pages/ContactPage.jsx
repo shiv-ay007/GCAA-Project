@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Mail,
   Phone,
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   Navigation,
 } from 'lucide-react';
+import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
 
 export const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -32,36 +34,38 @@ export const ContactPage = () => {
   return (
     <div className="w-full bg-white text-neutral-900">
       {/* ========================================================
-          1. HERO HEADER BANNER
+          1. SLEEK MINIMAL HERO BANNER (With college background image, matching Election form)
       ======================================================== */}
-      <section className="relative py-14 sm:py-20 bg-neutral-950 text-white text-center border-b border-neutral-900 overflow-hidden">
-        {/* Glow Accent */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-red-600/15 blur-[140px] rounded-full pointer-events-none -z-10" />
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus Image */}
+        <img
+          src={buildingHeroImg}
+          alt="Government College of Architecture"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/80 border border-red-800/60 text-red-400 text-xs font-extrabold uppercase tracking-widest mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Get In Touch
-          </div>
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
 
-          <h1 className="text-3xl sm:text-5xl font-black font-serif tracking-tight leading-tight">
-            Contact GCAAA{' '}
-            <span className="text-[#B70D2B] underline decoration-red-400/60 underline-offset-8">
-              Secretariat
-            </span>
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            Contact Secretariat
           </h1>
-
-          <p className="mt-5 text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Have questions regarding alumni membership, events, campus records, or collaborations? 
-            We are here to assist you.
-          </p>
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">CONTACT US</span>
+          </div>
         </div>
       </section>
 
       {/* ========================================================
           2. MAIN CONTENT: CONTACT INFO (LEFT) + FORM (RIGHT)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-10 sm:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           {/* LEFT COLUMN: SECRETARIAT DETAILS & OFFICE BEARERS */}
@@ -310,7 +314,7 @@ export const ContactPage = () => {
           3. CAMPUS ACCESSIBILITY & HOW TO REACH (MATCHING DESIGN)
       ======================================================== */}
       <section className="bg-neutral-50/70 border-t border-neutral-200/80 py-14 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14">
           
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">

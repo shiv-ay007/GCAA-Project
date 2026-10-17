@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { publications } from '@/data/publicationsData';
+import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
 
 export const PublicationsPage = () => {
   const [activePreviewPdf, setActivePreviewPdf] = useState(null);
@@ -36,64 +37,76 @@ export const PublicationsPage = () => {
   return (
     <div className="w-full bg-neutral-50 text-neutral-900 min-h-screen pb-24 font-sans">
       {/* ========================================================
-          1. HERO HEADER
+          1. SLEEK MINIMAL HERO BANNER (With college background image, matching Election form)
       ======================================================== */}
-      <section className="relative bg-gradient-to-b from-neutral-100 via-white to-neutral-50 border-b border-neutral-200/90 pt-12 sm:pt-16 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Soft Background Glows */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[360px] bg-red-600/5 rounded-full blur-[140px] pointer-events-none" />
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus Image */}
+        <img
+          src={buildingHeroImg}
+          alt="Government College of Architecture"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200 text-[#B70D2B] text-xs font-black tracking-widest uppercase mb-4 shadow-2xs">
-            <BookOpen className="w-3.5 h-3.5 text-[#B70D2B]" />
-            <span>ARCHIVES &amp; SOUVENIR EDITIONS</span>
-          </div>
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
 
-          {/* Heading */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-neutral-950 uppercase tracking-tight">
-            GCAAA <span className="text-[#B70D2B]">PUBLICATIONS</span> &amp; SOUVENIRS
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            Publications &amp; Souvenirs
           </h1>
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">PUBLICATIONS</span>
+          </div>
+        </div>
+      </section>
 
-          
-
+      {/* ========================================================
+          2. STATS & QUICK NAVIGATION (Matching Navbar Width: max-w-[1400px])
+      ======================================================== */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-6 sm:mt-8">
+        <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8 sm:mb-10">
           {/* Metric Stats Pills */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm font-semibold text-neutral-700">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-neutral-200 shadow-2xs">
-              <Layers className="w-4 h-4 text-[#B70D2B]" />
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs font-semibold text-neutral-700">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-50 border border-neutral-200">
+              <Layers className="w-3.5 h-3.5 text-[#B70D2B]" />
               <span><strong className="text-neutral-900">3</strong> Milestone Editions</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-neutral-200 shadow-2xs">
-              <FileText className="w-4 h-4 text-[#B70D2B]" />
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-50 border border-neutral-200">
+              <FileText className="w-3.5 h-3.5 text-[#B70D2B]" />
               <span><strong className="text-neutral-900">446</strong> Total Documented Pages</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-neutral-200 shadow-2xs">
-              <Calendar className="w-4 h-4 text-[#B70D2B]" />
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-50 border border-neutral-200">
+              <Calendar className="w-3.5 h-3.5 text-[#B70D2B]" />
               <span>Spanning <strong className="text-neutral-900">2013 – 2025</strong></span>
             </div>
           </div>
 
           {/* Quick Jump Bar */}
-          <div className="mt-8 pt-6 border-t border-neutral-200/80 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-xs uppercase tracking-wider text-neutral-500 font-bold mr-2">
-              Jump To Section:
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-neutral-500 font-bold mr-1">
+              Jump To:
             </span>
             {publications.map((pub) => (
               <a
                 key={pub.id}
                 href={`#${pub.id}`}
-                className="px-3 sm:px-4 py-1.5 rounded-lg bg-neutral-100 hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-neutral-200 text-xs font-bold transition-all text-neutral-700"
+                className="px-3.5 py-1.5 rounded-lg bg-neutral-100 hover:bg-red-50 hover:text-red-700 hover:border-red-300 border border-neutral-200 text-xs font-bold transition-all text-neutral-700"
               >
                 {pub.sectionNumber}. {pub.edition}
               </a>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ========================================================
-          2. THREE DEDICATED PUBLICATION SECTIONS
-      ======================================================== */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 space-y-16 sm:space-y-24">
+        {/* ========================================================
+            3. THREE DEDICATED PUBLICATION SECTIONS
+        ======================================================== */}
+        <div className="space-y-12 sm:space-y-16">
         {publications.map((pub, index) => (
           <section
             key={pub.id}
@@ -135,8 +148,8 @@ export const PublicationsPage = () => {
                     <p className="text-sm sm:text-base font-extrabold text-neutral-900 lining-nums">{pub.pages} Pages</p>
                   </div>
                   <div className="p-2.5 rounded-xl bg-neutral-50 border border-neutral-200">
-                    <p className="text-[10px] uppercase font-bold text-neutral-500">File Size</p>
-                    <p className="text-sm sm:text-base font-extrabold text-neutral-900 lining-nums">{pub.fileSize}</p>
+                    <p className="text-[10px] uppercase font-bold text-neutral-500">Edition Year</p>
+                    <p className="text-sm sm:text-base font-extrabold text-neutral-900 lining-nums">{pub.year}</p>
                   </div>
                 </div>
               </div>
@@ -211,7 +224,7 @@ export const PublicationsPage = () => {
                     className="flex-1 inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md shadow-red-600/30 active:scale-[0.98] cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Download PDF ({pub.fileSize})</span>
+                    <span>Download PDF</span>
                   </a>
 
                   {/* Secondary View Online Button */}
@@ -245,12 +258,13 @@ export const PublicationsPage = () => {
             </div>
           </section>
         ))}
+        </div>
       </div>
 
       {/* ========================================================
           3. CONTRIBUTE & ARCHIVE NOTICE BANNER
       ======================================================== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-16 sm:mt-20">
         <div className="bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 text-white rounded-3xl p-8 sm:p-10 border border-neutral-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-500 flex items-center justify-center shrink-0 mt-1">

@@ -14,8 +14,11 @@ import {
   PenTool,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
+  Filter,
 } from 'lucide-react';
 import { blogsData, blogCategories } from '@/data/blogsData';
+import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
 
 export const BlogPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -57,81 +60,109 @@ export const BlogPage = () => {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       {/* ========================================================
-          1. HERO HEADER BANNER
+          1. SLEEK MINIMAL HERO BANNER (With college background image, matching Election form)
       ======================================================== */}
-      <section className="relative bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white pt-14 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-neutral-800">
-        {/* Ambient background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[320px] bg-red-600/15 blur-[140px] rounded-full pointer-events-none -z-0" />
-        
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-4 sm:space-y-5">
-          {/* Breadcrumb / Top Tag */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/80 border border-red-700/80 text-red-400 text-xs font-bold uppercase tracking-wider shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>GCAAA Thought Leadership &amp; Memoirs</span>
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus Image */}
+        <img
+          src={buildingHeroImg}
+          alt="Government College of Architecture"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            Alumni Blogs &amp; Articles
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">BLOGS</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          2. CATEGORY DDL FILTER & SEARCH BAR (Clean Container Card)
+      ======================================================== */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-6 sm:mt-8">
+        <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          {/* Left: Category Dropdown (DDL) */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-600 shrink-0">
+              <Filter className="w-4 h-4 text-red-600" />
+              <span>Category:</span>
+            </div>
+
+            <div className="relative flex-1 sm:flex-initial">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full sm:w-auto appearance-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 text-neutral-900 text-xs sm:text-sm font-semibold rounded-xl pl-3.5 pr-10 py-2.5 focus:border-red-600 focus:bg-white focus:ring-1 focus:ring-red-600 outline-hidden transition-all cursor-pointer shadow-2xs"
+              >
+                {blogCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === 'All' ? 'All Categories' : cat}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-neutral-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {selectedCategory !== 'All' && (
+              <span className="hidden md:inline-flex items-center px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
+                {selectedCategory}
+              </span>
+            )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
-            ALUMNI <span className="text-[#E31E24]">BLOGS &amp; ARTICLES</span>
-          </h1>
-
-          <p className="text-xs sm:text-sm md:text-base text-neutral-300 max-w-2xl mx-auto leading-relaxed">
-            Architectural discourse, historic Lucknow memoirs, urban innovations, and professional journeys shared by the Government College of Architecture alumni fraternity.
-          </p>
-
-          {/* Search Box */}
-          <div className="pt-4 max-w-xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+          {/* Right: Search Box & Reset */}
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex-1 sm:w-72 md:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search blogs by title, architect, or topic (e.g. Lucknow, Urban, Heritage)..."
-                className="w-full pl-11 pr-4 py-3 bg-neutral-900/90 text-white placeholder-neutral-500 rounded-xl border border-neutral-700 focus:border-red-600 focus:bg-neutral-900 outline-hidden text-xs sm:text-sm shadow-xl transition-all"
+                placeholder="Search blogs by title, author..."
+                className="w-full pl-9 pr-8 py-2.5 bg-neutral-50 hover:bg-neutral-100/60 focus:bg-white text-neutral-900 placeholder-neutral-400 rounded-xl border border-neutral-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-hidden text-xs sm:text-sm transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 cursor-pointer p-0.5"
+                  title="Clear search"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ========================================================
-          2. CATEGORY FILTER STRIP
-      ======================================================== */}
-      <section className="bg-white border-b border-neutral-200 sticky top-[64px] sm:top-[72px] z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            {blogCategories.map((cat) => {
-              const isActive = selectedCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                    isActive
-                      ? 'bg-[#B70D2B] text-white shadow-sm'
-                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
+            {(selectedCategory !== 'All' || searchQuery) && (
+              <button
+                onClick={() => {
+                  setSelectedCategory('All');
+                  setSearchQuery('');
+                }}
+                className="px-3.5 py-2 text-xs font-bold text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ========================================================
           3. 6 BLOGS GRID: 3 COLUMNS PER ROW (grid-cols-1 md:grid-cols-2 lg:grid-cols-3)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 pt-8 pb-12 sm:pb-16">
         {/* Results Header */}
         <div className="flex items-center justify-between pb-6 border-b border-neutral-200 mb-8">
           <div>

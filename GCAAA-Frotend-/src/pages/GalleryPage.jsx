@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 
 import { allGalleryItems, galleryCategories as categoryTabs } from '@/data/galleryData';
+import { Link } from 'react-router-dom';
+import galleryHeroImg from '@/assets/images/building.jpg';
 export { allGalleryItems };
 
 export const GalleryPage = () => {
@@ -75,61 +77,74 @@ export const GalleryPage = () => {
   return (
     <div className="w-full bg-white text-neutral-900 min-h-screen pb-24 font-sans">
       {/* ========================================================
-          1. HEADER BANNER
+          1. SLEEK MINIMAL HERO BANNER
       ======================================================== */}
-      <section className="bg-gradient-to-b from-neutral-100/90 via-neutral-50 to-white border-b border-neutral-200/90 pt-10 sm:pt-14 pb-8 px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-4xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/90 text-[#B70D2B] text-xs font-black tracking-widest uppercase mb-3 shadow-2xs">
-            <Camera className="w-3.5 h-3.5 text-[#B70D2B]" />
-            <span>ARCHIVES &amp; DHAROHAR REUNIONS</span>
-          </div>
+      <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
+        {/* Background Campus / Gallery Image */}
+        <img
+          src={galleryHeroImg}
+          alt="GCAAA Photo Gallery"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-          {/* Heading */}
-          <h1 className="text-3xl sm:text-5xl font-black text-neutral-950 uppercase tracking-tight">
-            GCAAA PHOTO <span className="text-[#B70D2B]">GALLERY</span>
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+
+        {/* Content: Title & Breadcrumb Only */}
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
+            GCAAA Photo Gallery
           </h1>
-
-          {/* Categories Filter Pills */}
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
-            {categoryTabs.map((cat) => {
-              const isActive = activeCategory === cat.key;
-              const count = categoryCounts[cat.key] || 0;
-              return (
-                <button
-                  key={cat.key}
-                  onClick={() => setActiveCategory(cat.key)}
-                  className={`px-4 sm:px-5 py-2 rounded-full text-xs font-bold tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-[#B70D2B] text-white shadow-md shadow-red-700/25 ring-2 ring-red-400/40'
-                      : 'bg-white border border-neutral-200 text-neutral-700 hover:border-red-600/60 hover:text-red-700 hover:bg-red-50/50 shadow-xs'
-                  }`}
-                  style={{
-                    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                    fontVariantNumeric: 'lining-nums tabular-nums',
-                  }}
-                >
-                  <span>{cat.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                      isActive
-                        ? 'bg-white text-[#B70D2B]'
-                        : 'bg-neutral-100 text-neutral-600'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2 font-semibold">
+            <Link to="/" className="hover:text-red-400 transition-colors">
+              HOME
+            </Link>
+            <span className="text-red-500 font-bold">—</span>
+            <span className="text-amber-400">GALLERY</span>
           </div>
         </div>
       </section>
 
+      {/* Categories Filter Pills Bar */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-6 sm:mt-8">
+        <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-sm p-4 sm:p-5 flex flex-wrap items-center justify-center gap-2.5">
+          {categoryTabs.map((cat) => {
+            const isActive = activeCategory === cat.key;
+            const count = categoryCounts[cat.key] || 0;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className={`px-4 sm:px-5 py-2 rounded-full text-xs font-bold tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-[#B70D2B] text-white shadow-md shadow-red-700/25 ring-2 ring-red-400/40'
+                    : 'bg-neutral-50 border border-neutral-200 text-neutral-700 hover:border-red-600/60 hover:text-red-700 hover:bg-red-50/50 shadow-2xs'
+                }`}
+                style={{
+                  fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                  fontVariantNumeric: 'lining-nums tabular-nums',
+                }}
+              >
+                <span>{cat.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    isActive
+                      ? 'bg-white text-[#B70D2B]'
+                      : 'bg-neutral-200 text-neutral-700'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ========================================================
           2. PURE PHOTO GRID (NO TEXT ON CARDS)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 pt-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
           {filteredItems.map((item, index) => (
             <div
