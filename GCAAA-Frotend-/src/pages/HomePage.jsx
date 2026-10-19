@@ -21,7 +21,7 @@
     ];
 
     return (
-      <div className="w-full bg-neutral-950 text-white">
+      <div className="w-full max-w-full overflow-x-hidden bg-neutral-950 text-white">
 
         {/* ========================================================
             1. HERO SECTION WITH VIBRANT PHOTO & SUBTLE COLOR OVERLAY
@@ -43,9 +43,9 @@
           {/* Hero Content Container */}
           <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center py-2">
             {/* Top Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/25 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-1.5 sm:mb-2.5 shadow-lg animate-fadeIn">
+            <div className="inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/25 backdrop-blur-md text-white text-[9px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-[0.2em] mb-1.5 sm:mb-2.5 shadow-lg animate-fadeIn text-center">
               <Sparkles className="w-3.5 h-3.5 text-red-500 shrink-0" />
-              <span>Government College of Architecture Alumni Association</span>
+              <span className="truncate max-w-[240px] xs:max-w-[280px] sm:max-w-none">Government College of Architecture Alumni Association</span>
             </div>
 
             {/* Main Hero Headline */}

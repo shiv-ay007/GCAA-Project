@@ -190,7 +190,7 @@ export const Footer = () => {
 
           {/* LEFT: Precision Crafted + Logo */}
           <div className="flex flex-col sm:flex-row items-center gap-2">
-            <span className="text-xs sm:text-sm text-neutral-400 text-center sm:text-left leading-relaxed whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-neutral-400 text-center sm:text-left leading-relaxed sm:whitespace-nowrap">
               Precision Crafted with Digital Intelligence by
             </span>
             <a
@@ -212,7 +212,7 @@ export const Footer = () => {
           <span className="hidden lg:block text-neutral-700">|</span>
 
           {/* RIGHT: Copyright text */}
-          <p className="text-xs sm:text-sm text-neutral-400 text-center lg:text-left leading-relaxed whitespace-nowrap">
+          <p className="text-xs sm:text-sm text-neutral-400 text-center lg:text-left leading-relaxed sm:whitespace-nowrap">
             © {new Date().getFullYear()} Government College of Architecture Alumni Association. All Rights Reserved.
           </p>
 

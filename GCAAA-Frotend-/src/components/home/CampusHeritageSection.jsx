@@ -73,7 +73,7 @@ export const CampusHeritageSection = () => {
   }, [activeModalIndex]);
 
   return (
-    <section className="w-full bg-white text-neutral-900 py-12 sm:py-16 lg:py-20 border-b border-neutral-200">
+    <section className="w-full bg-white text-neutral-900 py-12 sm:py-16 lg:py-20 border-b border-neutral-200 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14">
         {/* ========================================================
             MINIMAL CLEAN HEADER (NO BADGES)
