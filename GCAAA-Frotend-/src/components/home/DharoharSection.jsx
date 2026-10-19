@@ -7,7 +7,7 @@ import {
   Sparkles,
   Download,
 } from "lucide-react";
-import dharoharImg from "@/assets/images/dharohar.png";
+import dharoharImg from "@/assets/images/dharohar_2026_campus.jpg";
 
 export const DharoharSection = () => {
   return (

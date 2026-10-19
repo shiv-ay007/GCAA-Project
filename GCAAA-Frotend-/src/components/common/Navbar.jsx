@@ -92,10 +92,10 @@ export const Navbar = () => {
             <div className="hidden sm:flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-red-600 shrink-0" />
               <a
-                href="mailto:gcaaa072@gmail.com"
+                href="mailto:gcaaa07@gmail.com"
                 className="hover:text-red-600 transition-colors font-semibold"
               >
-                gcaaa072@gmail.com
+                gcaaa07@gmail.com
               </a>
             </div>
           </div>
@@ -160,10 +160,10 @@ export const Navbar = () => {
                 </div>
                 <div>
                   <a
-                    href="tel:05222740152"
+                    href="tel:+919839270036"
                     className="text-sm font-bold text-neutral-900 leading-tight hover:text-red-600 transition-colors lining-nums"
                   >
-                    0522-2740152
+                    +91 98392 70036
                   </a>
                   <p className="text-xs text-neutral-500">Discuss any Queries</p>
                 </div>
@@ -717,14 +717,14 @@ export const Navbar = () => {
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <a
-                href="tel:05222740152"
+                href="tel:+919839270036"
                 className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-white border border-neutral-300/80 text-neutral-800 font-bold hover:text-red-600 hover:border-red-300 transition-colors shadow-2xs"
               >
                 <Phone className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                <span>0522-2740152</span>
+                <span>+91 98392 70036</span>
               </a>
               <a
-                href="mailto:gcaaa072@gmail.com"
+                href="mailto:gcaaa07@gmail.com"
                 className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-white border border-neutral-300/80 text-neutral-800 font-bold hover:text-red-600 hover:border-red-300 transition-colors shadow-2xs"
               >
                 <Mail className="w-3.5 h-3.5 text-red-600 shrink-0" />

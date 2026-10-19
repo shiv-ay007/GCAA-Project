@@ -155,12 +155,12 @@ export const Footer = () => {
 
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4.5 h-4.5 text-red-500 shrink-0" />
-                <a href="tel:05222740152" className="hover:text-red-400 font-semibold text-white transition-colors">0522-2740152</a>
+                <a href="tel:+919839270036" className="hover:text-red-400 font-semibold text-white transition-colors">+91 98392 70036</a>
               </div>
 
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4.5 h-4.5 text-red-500 shrink-0" />
-                <a href="mailto:gca_lko@rediffmail.com" className="hover:text-red-400 font-semibold text-neutral-300 transition-colors">gca_lko@rediffmail.com</a>
+                <a href="mailto:gcaaa07@gmail.com" className="hover:text-red-400 font-semibold text-neutral-300 transition-colors">gcaaa07@gmail.com</a>
               </div>
 
               <div className="flex items-start gap-2.5">

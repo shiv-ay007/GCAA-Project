@@ -2,8 +2,8 @@ export const APP_NAME = 'GCAAA';
 export const APP_DESCRIPTION = 'Government College Alumni Association Portal';
 
 export const CONTACT_INFO = {
-  phone: '0522-2740152',
-  email: 'gca_lko@rediffmail.com',
+  phone: '+91 98392 70036',
+  email: 'gcaaa07@gmail.com',
   address: 'Tagore Marg, Hazratganj, Lucknow – 226007, Uttar Pradesh',
 };
 

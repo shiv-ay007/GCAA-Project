@@ -10,6 +10,7 @@ import Events from '../Pages/Events'
 import Gallery from '../Pages/Gallery'
 import Publications from '../Pages/Publications'
 import Blogs from '../Pages/Blogs'
+import BlogDetails from '../Pages/BlogDetails'
 import Settings from '../Pages/Settings'
 import Profile from '../Pages/Profile'
 import adminAuth from '../Api/adminAuthApi'
@@ -54,6 +55,7 @@ const MainRoute = () => {
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/publications" element={<Publications />} />
         <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blogs/:id" element={<BlogDetails />} />
         {/* <Route path="/settings" element={<Settings />} /> */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/MainLayout" element={<Navigate to="/dashboard" replace />} />

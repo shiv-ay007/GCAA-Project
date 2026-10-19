@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -9,53 +9,81 @@ import {
   Search,
   Sparkles,
   X,
-  Share2,
   Tag,
   PenTool,
   CheckCircle2,
   ChevronRight,
   ChevronDown,
   Filter,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { blogsData, blogCategories } from '@/data/blogsData';
+import { fetchBlogsFromApi } from '@/Api/blogApi';
 import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
 
 export const BlogPage = () => {
+  const [blogs, setBlogs] = useState(blogsData);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeBlogModal, setActiveBlogModal] = useState(null);
-  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Fetch live blogs from backend API
+  const loadBlogsFromBackend = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchBlogsFromApi();
+      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        setBlogs(res.data);
+      }
+    } catch (err) {
+      console.warn('Backend blogs fetch failed, using fallback blogsData:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBlogsFromBackend();
+  }, []);
+
+  // Safe author helpers
+  const getAuthorName = (author) =>
+    typeof author === 'object' ? author?.name || 'GCAAA Editorial Board' : author || 'GCAAA Editorial Board';
+  const getAuthorRole = (author) =>
+    typeof author === 'object' ? author?.role || 'Alumni Member' : 'Alumni Member';
+  const getAuthorAvatar = (author) =>
+    (typeof author === 'object' && author?.avatar)
+      ? author.avatar
+      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+
+  // Dynamic Categories from available blogs
+  const dynamicCategories = useMemo(() => {
+    const set = new Set(blogCategories);
+    blogs.forEach((b) => {
+      if (b.category) set.add(b.category);
+    });
+    return Array.from(set);
+  }, [blogs]);
 
   // Filter blogs based on category and search query
   const filteredBlogs = useMemo(() => {
-    return blogsData.filter((blog) => {
+    return blogs.filter((blog) => {
       const matchesCategory =
         selectedCategory === 'All' || blog.category === selectedCategory;
       const q = searchQuery.toLowerCase().trim();
+      const authorName = getAuthorName(blog.author).toLowerCase();
+      const tagsList = Array.isArray(blog.tags) ? blog.tags : [];
       const matchesSearch =
         !q ||
-        blog.title.toLowerCase().includes(q) ||
-        blog.excerpt.toLowerCase().includes(q) ||
-        blog.author.name.toLowerCase().includes(q) ||
-        blog.tags.some((tag) => tag.toLowerCase().includes(q));
+        (blog.title && blog.title.toLowerCase().includes(q)) ||
+        (blog.excerpt && blog.excerpt.toLowerCase().includes(q)) ||
+        authorName.includes(q) ||
+        tagsList.some((tag) => tag.toLowerCase().includes(q));
 
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
-
-  const handleShare = (blog) => {
-    if (navigator.share) {
-      navigator.share({
-        title: blog.title,
-        text: blog.excerpt,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    }
-  };
+  }, [blogs, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -106,7 +134,7 @@ export const BlogPage = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full sm:w-auto appearance-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 text-neutral-900 text-xs sm:text-sm font-semibold rounded-xl pl-3.5 pr-10 py-2.5 focus:border-red-600 focus:bg-white focus:ring-1 focus:ring-red-600 outline-hidden transition-all cursor-pointer shadow-2xs"
               >
-                {blogCategories.map((cat) => (
+                {dynamicCategories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat === 'All' ? 'All Categories' : cat}
                   </option>
@@ -160,17 +188,19 @@ export const BlogPage = () => {
       </div>
 
       {/* ========================================================
-          3. 6 BLOGS GRID: 3 COLUMNS PER ROW (grid-cols-1 md:grid-cols-2 lg:grid-cols-3)
+          3. BLOGS GRID
       ======================================================== */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 pt-8 pb-12 sm:pb-16">
         {/* Results Header */}
         <div className="flex items-center justify-between pb-6 border-b border-neutral-200 mb-8">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
-              Featured Articles <span className="text-red-600">({filteredBlogs.length})</span>
+            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight flex items-center gap-2">
+              <span>Featured Articles</span>
+              <span className="text-red-600">({filteredBlogs.length})</span>
+              {loading && <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />}
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Showing {filteredBlogs.length} of {blogsData.length} published blogs in <strong>{selectedCategory}</strong>
+              Showing {filteredBlogs.length} of {blogs.length} published blogs in <strong>{selectedCategory}</strong>
             </p>
           </div>
 
@@ -192,12 +222,15 @@ export const BlogPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredBlogs.map((blog) => (
               <article
-                key={blog.id}
+                key={blog.slug || blog._id || blog.id}
                 className="group bg-white rounded-2xl border border-neutral-200/90 shadow-sm hover:shadow-2xl hover:border-red-600/40 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden"
               >
                 <div>
                   {/* Image Cover Container */}
-                  <div className="relative aspect-[16/10] overflow-hidden bg-neutral-900">
+                  <Link
+                    to={`/blog/${blog.slug || blog._id || blog.id}`}
+                    className="relative aspect-[16/10] overflow-hidden bg-neutral-900 block"
+                  >
                     <img
                       src={blog.image}
                       alt={blog.title}
@@ -219,7 +252,7 @@ export const BlogPage = () => {
                         <span>{blog.readTime}</span>
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Card Content */}
                   <div className="p-5 sm:p-6 space-y-3">
@@ -230,11 +263,10 @@ export const BlogPage = () => {
                     </div>
 
                     {/* Title */}
-                    <h3
-                      onClick={() => setActiveBlogModal(blog)}
-                      className="text-base sm:text-lg font-black text-neutral-900 group-hover:text-[#B70D2B] transition-colors line-clamp-2 leading-snug cursor-pointer"
-                    >
-                      {blog.title}
+                    <h3 className="text-base sm:text-lg font-black text-neutral-900 group-hover:text-[#B70D2B] transition-colors line-clamp-2 leading-snug">
+                      <Link to={`/blog/${blog.slug || blog._id || blog.id}`}>
+                        {blog.title}
+                      </Link>
                     </h3>
 
                     {/* Excerpt */}
@@ -261,27 +293,27 @@ export const BlogPage = () => {
                 <div className="px-5 sm:px-6 pb-5 pt-3 border-t border-neutral-100 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <img
-                      src={blog.author.avatar}
-                      alt={blog.author.name}
+                      src={getAuthorAvatar(blog.author)}
+                      alt={getAuthorName(blog.author)}
                       className="w-8 h-8 rounded-full object-cover border border-neutral-300 shrink-0"
                     />
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-neutral-900 truncate">
-                        {blog.author.name}
+                        {getAuthorName(blog.author)}
                       </p>
                       <p className="text-[10px] text-neutral-500 truncate max-w-[130px] sm:max-w-[150px]">
-                        {blog.author.role}
+                        {getAuthorRole(blog.author)}
                       </p>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setActiveBlogModal(blog)}
+                  <Link
+                    to={`/blog/${blog.slug || blog._id || blog.id}`}
                     className="inline-flex items-center gap-1 text-xs font-black text-[#B70D2B] hover:text-neutral-900 uppercase tracking-wider group-hover:translate-x-0.5 transition-all cursor-pointer shrink-0"
                   >
                     <span>Read</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  </Link>
                 </div>
               </article>
             ))}
@@ -330,7 +362,7 @@ export const BlogPage = () => {
 
             <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
               <a
-                href="mailto:gcaaa072@gmail.com?subject=GCAAA%20Blog%20Submission"
+                href="mailto:gcaaa07@gmail.com?subject=GCAAA%20Blog%20Submission"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#B70D2B] hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <PenTool className="w-4 h-4" />
@@ -347,145 +379,6 @@ export const BlogPage = () => {
           </div>
         </div>
       </section>
-
-      {/* ========================================================
-          5. FULL BLOG ARTICLE MODAL
-      ======================================================== */}
-      {activeBlogModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn overflow-y-auto">
-          <div
-            className="bg-white rounded-3xl max-w-3xl w-full my-auto overflow-hidden shadow-2xl border border-neutral-200 relative animate-scaleUp"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header Image */}
-            <div className="relative aspect-[16/9] w-full bg-neutral-900">
-              <img
-                src={activeBlogModal.image}
-                alt={activeBlogModal.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setActiveBlogModal(null)}
-                className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="absolute bottom-4 left-4 z-10">
-                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider shadow-sm border ${activeBlogModal.categoryColor}`}>
-                  {activeBlogModal.category}
-                </span>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 sm:p-8 max-h-[60vh] overflow-y-auto space-y-6">
-              {/* Meta bar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 text-xs text-neutral-500">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 font-semibold">
-                    <Calendar className="w-3.5 h-3.5 text-red-600" />
-                    <span>{activeBlogModal.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 font-semibold">
-                    <Clock className="w-3.5 h-3.5 text-red-600" />
-                    <span>{activeBlogModal.readTime}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleShare(activeBlogModal)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-300 hover:bg-neutral-100 text-neutral-700 font-bold text-xs transition-colors cursor-pointer"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>{copiedLink ? 'Link Copied!' : 'Share Article'}</span>
-                </button>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-neutral-900 leading-snug">
-                {activeBlogModal.title}
-              </h2>
-
-              {/* Author Card */}
-              <div className="flex items-center gap-3 p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200">
-                <img
-                  src={activeBlogModal.author.avatar}
-                  alt={activeBlogModal.author.name}
-                  className="w-12 h-12 rounded-full object-cover border border-neutral-300"
-                />
-                <div>
-                  <h4 className="text-sm font-black text-neutral-900">
-                    {activeBlogModal.author.name}
-                  </h4>
-                  <p className="text-xs text-neutral-500">
-                    {activeBlogModal.author.role}
-                  </p>
-                </div>
-              </div>
-
-              {/* Content Body */}
-              <div className="prose prose-neutral max-w-none text-xs sm:text-sm text-neutral-700 leading-relaxed space-y-4">
-                {activeBlogModal.content.split('\n\n').map((paragraph, index) => {
-                  const trimmed = paragraph.trim();
-                  if (!trimmed) return null;
-                  if (trimmed.startsWith('### ')) {
-                    return (
-                      <h3
-                        key={index}
-                        className="text-base sm:text-lg font-black text-neutral-900 pt-2 border-b border-neutral-200 pb-1"
-                      >
-                        {trimmed.replace('### ', '')}
-                      </h3>
-                    );
-                  }
-                  if (trimmed.startsWith('- ')) {
-                    const items = trimmed.split('\n').map((item) => item.replace('- ', '').trim());
-                    return (
-                      <ul key={index} className="list-disc pl-5 space-y-1 text-neutral-700">
-                        {items.map((item, idx) => (
-                          <li key={idx}>{item}</li>
-                        ))}
-                      </ul>
-                    );
-                  }
-                  return (
-                    <p key={index} className="text-neutral-700">
-                      {trimmed}
-                    </p>
-                  );
-                })}
-              </div>
-
-              {/* Tags */}
-              <div className="pt-4 border-t border-neutral-200 flex flex-wrap gap-2">
-                {activeBlogModal.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-neutral-700 bg-neutral-100 px-3 py-1 rounded-lg"
-                  >
-                    <Tag className="w-3 h-3 text-red-600" />
-                    <span>{tag}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 bg-neutral-100 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-              <span className="text-xs text-neutral-500 font-semibold">
-                Published on Government College Alumni Association Official Portal
-              </span>
-              <button
-                onClick={() => setActiveBlogModal(null)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-neutral-900 hover:bg-red-600 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0"
-              >
-                Close Article
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

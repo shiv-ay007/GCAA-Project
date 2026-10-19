@@ -1,66 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BlogStats from '../Component/Blogs/BlogStats'
 import BlogFilters from '../Component/Blogs/BlogFilters'
 import BlogList from '../Component/Blogs/BlogList'
 import BlogModal from '../Component/Blogs/BlogModal'
-
-const initialBlogs = [
-  {
-    id: 1,
-    title: 'Transforming Urban Landscapes: Journey of Ar. Sunita Roy',
-    category: 'Alumni Spotlight',
-    author: 'Editorial Desk',
-    date: 'March 10, 2026',
-    reads: '1,420',
-    status: 'Published',
-    image:
-      'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=400&q=80',
-    excerpt:
-      'Reflecting on 20 years since graduating from GCA Lucknow, Ar. Roy discusses master-planning sustainable transit corridors and green public parks.',
-  },
-  {
-    id: 2,
-    title: 'The Evolution of Brick Masonry in Awadh Architecture',
-    category: 'Architectural Opinion',
-    author: 'Prof. Aniruddh Gupta',
-    date: 'Feb 24, 2026',
-    reads: '980',
-    status: 'Published',
-    image:
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80',
-    excerpt:
-      'How historical Lakhnawi Lakhori bricks inspired contemporary climatic thermal envelopes in Northern India.',
-  },
-  {
-    id: 3,
-    title: 'Late Night Juries, Chai at the Gate: Remembering 90s GCA Campus Life',
-    category: 'Campus Memories',
-    author: 'Batch of 1998 Alumni',
-    date: 'Jan 15, 2026',
-    reads: '2,640',
-    status: 'Published',
-    image:
-      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=400&q=80',
-    excerpt:
-      'Nostalgic memoirs from senior alumni tracing the studio culture, hand-drawn drafting boards, and everlasting camaraderie.',
-  },
-  {
-    id: 4,
-    title: 'Artificial Intelligence & Generative BIM in Architectural Practice',
-    category: 'Industry Trends',
-    author: 'Karan Mehra (Batch 2021)',
-    date: 'March 01, 2026',
-    reads: '450',
-    status: 'Draft',
-    image:
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
-    excerpt:
-      'A review of emergent parametric design algorithms and how recent GCA graduates are integrating AI workflows in enterprise studios.',
-  },
-]
+import {
+  fetchAdminBlogs,
+  createBlog,
+  updateBlog,
+  deleteBlog,
+  toggleBlogStatus,
+} from '../Api/blogAdminApi'
+import { Loader2, RefreshCw, Plus } from 'lucide-react'
 
 const Blogs = () => {
-  const [blogs, setBlogs] = useState(initialBlogs)
+  const navigate = useNavigate()
+  const [blogs, setBlogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
   const [selectedStatus, setSelectedStatus] = useState('All Status')
@@ -68,9 +25,34 @@ const Blogs = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingBlog, setEditingBlog] = useState(null)
 
+  const loadBlogs = async () => {
+    try {
+      setLoading(true)
+      const res = await fetchAdminBlogs()
+      if (res?.success && Array.isArray(res.data)) {
+        setBlogs(res.data)
+        setError(null)
+      }
+    } catch (err) {
+      console.error('Failed to load admin blogs:', err)
+      setError(err?.response?.data?.message || err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadBlogs()
+  }, [])
+
   const handleOpenAdd = () => {
     setEditingBlog(null)
     setModalOpen(true)
+  }
+
+  const handleView = (blog) => {
+    const blogId = blog._id || blog.id
+    navigate(`/blogs/${blogId}`)
   }
 
   const handleEdit = (blog) => {
@@ -78,45 +60,66 @@ const Blogs = () => {
     setModalOpen(true)
   }
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      setBlogs((prev) => prev.filter((b) => b.id !== id))
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this article?')) return
+    try {
+      await deleteBlog(id)
+      setBlogs((prev) => prev.filter((b) => b.id !== id && b._id !== id))
+    } catch (err) {
+      alert('Failed to delete blog: ' + (err?.response?.data?.message || err.message))
     }
   }
 
-  const handleToggleStatus = (id) => {
-    setBlogs((prev) =>
-      prev.map((b) =>
-        b.id === id
-          ? {
-              ...b,
-              status: b.status === 'Published' ? 'Draft' : 'Published',
-            }
-          : b
+  const handleToggleStatus = async (id) => {
+    try {
+      const res = await toggleBlogStatus(id)
+      setBlogs((prev) =>
+        prev.map((b) =>
+          b.id === id || b._id === id
+            ? {
+                ...b,
+                status: res.status || (b.status === 'Published' ? 'Draft' : 'Published'),
+              }
+            : b
+        )
       )
-    )
+    } catch (err) {
+      alert('Failed to toggle status: ' + (err?.response?.data?.message || err.message))
+    }
   }
 
-  const handleSave = (data) => {
-    if (editingBlog) {
-      setBlogs((prev) =>
-        prev.map((b) => (b.id === editingBlog.id ? { ...data, id: editingBlog.id } : b))
-      )
-    } else {
-      const newBlog = {
-        ...data,
-        id: Date.now(),
-        reads: '0',
+  const handleSave = async (data) => {
+    try {
+      setLoading(true)
+      if (editingBlog) {
+        const id = editingBlog._id || editingBlog.id
+        const res = await updateBlog(id, data)
+        if (res?.success && res.data) {
+          setBlogs((prev) =>
+            prev.map((b) => (b.id === id || b._id === id ? res.data : b))
+          )
+        }
+      } else {
+        const res = await createBlog(data)
+        if (res?.success && res.data) {
+          setBlogs((prev) => [res.data, ...prev])
+        }
       }
-      setBlogs([newBlog, ...blogs])
+      setModalOpen(false)
+      loadBlogs()
+    } catch (err) {
+      alert('Failed to save blog: ' + (err?.response?.data?.message || err.message))
+    } finally {
+      setLoading(false)
     }
   }
 
   const filteredBlogs = blogs.filter((b) => {
+    const authorName = typeof b.author === 'object' ? b.author?.name || '' : b.author || ''
     const matchesSearch =
-      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+      (b.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      authorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.excerpt || '').toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesCategory =
       selectedCategory === 'All Categories' || b.category === selectedCategory
@@ -132,17 +135,38 @@ const Blogs = () => {
 
   return (
     <div className="space-y-6">
-      {/* Title */}
-      <div>
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]">
-          Stories & Perspectives
-        </span>
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-          Articles & Blog Management
-        </h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Publish alumni spotlights, architectural essays, and college community news.
-        </p>
+      {/* Title & Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]">
+            Stories &amp; Perspectives
+          </span>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            Articles &amp; Blog Management
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Manage, write and publish alumni blogs with MongoDB &amp; Cloudinary integration.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={loadBlogs}
+            disabled={loading}
+            className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors cursor-pointer shadow-2xs"
+            title="Refresh Blogs from Database"
+          >
+            <RefreshCw size={17} className={loading ? 'animate-spin text-[#800018]' : ''} />
+          </button>
+
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-2 bg-[#800018] hover:bg-[#a00020] text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
+          >
+            <Plus size={16} />
+            <span>Write New Blog</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -152,7 +176,7 @@ const Blogs = () => {
         draftCount={draftCount}
       />
 
-      {/* Filters */}
+      {/* Controls & Filter Bar */}
       <BlogFilters
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -160,18 +184,27 @@ const Blogs = () => {
         setSelectedCategory={setSelectedCategory}
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
-        onOpenAddModal={handleOpenAdd}
+        onOpenAdd={handleOpenAdd}
       />
 
-      {/* Blog List */}
-      <BlogList
-        blogs={filteredBlogs}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onToggleStatus={handleToggleStatus}
-      />
+      {/* Loading state */}
+      {loading && blogs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-gray-100 shadow-sm text-center">
+          <Loader2 className="w-8 h-8 text-[#800018] animate-spin mb-3" />
+          <p className="text-sm font-semibold text-gray-700">Loading blogs from database...</p>
+        </div>
+      ) : (
+        /* Blog List Table / Cards with View, Edit, Delete */
+        <BlogList
+          blogs={filteredBlogs}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onToggleStatus={handleToggleStatus}
+        />
+      )}
 
-      {/* Modal */}
+      {/* Create / Edit Modal (With Cloudinary File Upload) */}
       <BlogModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

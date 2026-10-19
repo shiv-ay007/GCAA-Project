@@ -1,36 +1,75 @@
 import React, { useState, useEffect } from 'react'
-import { X, Check } from 'lucide-react'
+import { X, Check, Upload, Image as ImageIcon } from 'lucide-react'
 
 const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Alumni Spotlight',
-    author: 'Admin Editor',
-    date: 'March 2026',
+    category: 'Heritage & Architecture',
+    author: 'GCAAA Editorial Board',
+    date: '',
     excerpt: '',
     content: '',
     status: 'Published',
     image: '',
+    tags: '',
   })
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     if (editingBlog) {
-      setFormData(editingBlog)
+      setFormData({
+        ...editingBlog,
+        category: editingBlog.category || 'Heritage & Architecture',
+        author: typeof editingBlog.author === 'object' ? editingBlog.author.name : editingBlog.author || 'GCAAA Editorial Board',
+        tags: Array.isArray(editingBlog.tags) ? editingBlog.tags.join(', ') : editingBlog.tags || '',
+        image: editingBlog.image || '',
+      })
     } else {
       setFormData({
         title: '',
-        category: 'Alumni Spotlight',
-        author: 'Admin Editor',
-        date: 'March 2026',
+        category: 'Heritage & Architecture',
+        author: 'GCAAA Editorial Board',
+        date: '',
         excerpt: '',
         content: '',
         status: 'Published',
-        image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=400&q=80',
+        image: '',
+        tags: '',
       })
     }
   }, [editingBlog, isOpen])
 
   if (!isOpen) return null
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, WEBP, etc.)')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image file size must be under 10MB')
+      return
+    }
+
+    setUploadingImage(true)
+    const reader = new FileReader()
+    reader.onload = (uploadEvent) => {
+      setFormData((prev) => ({
+        ...prev,
+        image: uploadEvent.target.result,
+      }))
+      setUploadingImage(false)
+    }
+    reader.onerror = () => {
+      alert('Failed to read file')
+      setUploadingImage(false)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -39,15 +78,15 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl transition-all animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl transition-all animate-in fade-in zoom-in-95">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div>
             <h3 className="font-serif text-xl font-bold text-gray-900">
               {editingBlog ? 'Edit Blog Article' : 'Write New Blog Article'}
             </h3>
             <p className="text-xs text-gray-500">
-              Share alumni stories, architecture trends and campus life memories
+              Share alumni stories, architecture trends and campus life memories (synced with Cloudinary & MongoDB)
             </p>
           </div>
           <button
@@ -79,7 +118,7 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Category
+                Category *
               </label>
               <select
                 value={formData.category}
@@ -88,26 +127,28 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
                 }
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#800018]"
               >
+                <option value="Heritage & Architecture">Heritage & Architecture</option>
+                <option value="Alumni Reunion">Alumni Reunion</option>
+                <option value="Urban Planning">Urban Planning</option>
+                <option value="Career & Mentorship">Career & Mentorship</option>
+                <option value="Archives & Publications">Archives & Publications</option>
+                <option value="Sustainable Design">Sustainable Design</option>
                 <option value="Alumni Spotlight">Alumni Spotlight</option>
-                <option value="Architectural Opinion">Architectural Opinion</option>
                 <option value="Campus Memories">Campus Memories</option>
-                <option value="Urban Design">Urban Design</option>
-                <option value="Industry Trends">Industry Trends</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Author
+                Author Name
               </label>
               <input
                 type="text"
-                required
                 value={formData.author}
                 onChange={(e) =>
                   setFormData({ ...formData, author: e.target.value })
                 }
-                placeholder="Author Name"
+                placeholder="e.g. Ar. Rajiv Kacker or GCAAA Editorial Board"
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#800018]"
               />
             </div>
@@ -132,23 +173,72 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Thumbnail Image URL
+                Tags (Comma separated)
               </label>
               <input
-                type="url"
-                value={formData.image}
+                type="text"
+                value={formData.tags}
                 onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
+                  setFormData({ ...formData, tags: e.target.value })
                 }
-                placeholder="https://..."
+                placeholder="e.g. Heritage, Lucknow, Alumni"
                 className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#800018]"
               />
             </div>
           </div>
 
+          {/* Cover Image Upload (Cloudinary Supported) */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-gray-700">
+              Blog Cover Image (Auto-saved to Cloudinary) *
+            </label>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <label className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-xl text-xs font-bold text-neutral-800 cursor-pointer transition-colors shadow-2xs">
+                <Upload size={14} className="text-[#800018]" />
+                <span>Upload From Computer</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-xs text-neutral-400">or paste URL below</span>
+            </div>
+
+            <input
+              type="text"
+              value={formData.image}
+              onChange={(e) =>
+                setFormData({ ...formData, image: e.target.value })
+              }
+              placeholder="https://res.cloudinary.com/... or paste image URL"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#800018]"
+            />
+
+            {/* Image Preview */}
+            {formData.image && (
+              <div className="relative mt-2 w-full max-h-44 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center">
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  className="w-full h-44 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, image: '' })}
+                  className="absolute top-2 right-2 p-1 bg-black/75 hover:bg-red-600 text-white rounded-full transition-colors"
+                  title="Remove image"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Short Excerpt / Teaser *
+              Short Excerpt / Summary *
             </label>
             <textarea
               rows={2}
@@ -164,15 +254,16 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Article Content
+              Article Content * (Markdown / Multi-paragraph supported)
             </label>
             <textarea
-              rows={4}
+              rows={6}
+              required
               value={formData.content}
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              placeholder="Full article content in markdown or plain text..."
+              placeholder="Write or paste full article content. You can use markdown like ### Subheadings and - Bullet points."
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#800018]"
             />
           </div>
@@ -181,13 +272,14 @@ const BlogModal = ({ isOpen, onClose, onSave, editingBlog }) => {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+              className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-xl bg-[#800018] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#a00020]"
+              disabled={uploadingImage}
+              className="flex items-center gap-2 rounded-xl bg-[#800018] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#a00020] cursor-pointer disabled:opacity-50"
             >
               <Check size={16} />
               {editingBlog ? 'Update Article' : 'Publish Article'}

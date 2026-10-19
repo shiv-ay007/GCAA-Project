@@ -11,6 +11,7 @@ import { AlumniDataListPage } from '@/pages/AlumniDataListPage';
 import { RegisteredMembersPage } from '@/pages/RegisteredMembersPage';
 import { PublicationsPage } from '@/pages/PublicationsPage';
 import { BlogPage } from '@/pages/BlogPage';
+import { BlogDetailsPage } from '@/pages/BlogDetailsPage';
 import { ElectionNominationPage } from '@/pages/ElectionNominationPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -35,7 +36,9 @@ export const AppRoutes = () => {
         <Route path="publications" element={<PublicationsPage />} />
         <Route path="resources" element={<PublicationsPage />} />
         <Route path="blog" element={<BlogPage />} />
+        <Route path="blog/:id" element={<BlogDetailsPage />} />
         <Route path="blogs" element={<BlogPage />} />
+        <Route path="blogs/:id" element={<BlogDetailsPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -101,18 +101,18 @@ export const ContactPage = () => {
                   </div>
                 </div>
 
-                {/* Landline */}
+                {/* Phone */}
                 <div className="flex items-start gap-3.5">
                   <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0 text-red-400">
                     <Phone className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Landline / Phone</p>
+                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Contact Phone</p>
                     <a
-                      href="tel:05222740152"
+                      href="tel:+919839270036"
                       className="text-white text-xs sm:text-sm mt-0.5 font-semibold hover:text-red-400 transition-colors inline-block"
                     >
-                      0522-2740152
+                      +91 98392 70036
                     </a>
                   </div>
                 </div>
@@ -125,10 +125,10 @@ export const ContactPage = () => {
                   <div>
                     <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Official Email</p>
                     <a
-                      href="mailto:gcaaa072@gmail.com"
+                      href="mailto:gcaaa07@gmail.com"
                       className="text-white text-xs sm:text-sm mt-0.5 font-semibold hover:text-red-400 transition-colors inline-block"
                     >
-                      gcaaa072@gmail.com
+                      gcaaa07@gmail.com
                     </a>
                   </div>
                 </div>

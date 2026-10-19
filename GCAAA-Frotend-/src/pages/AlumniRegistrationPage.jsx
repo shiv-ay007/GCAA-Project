@@ -473,7 +473,7 @@ export const AlumniRegistrationPage = () => {
                   Faculty of Architecture, AKTU (formerly GCA Lucknow / GBTU), Tagore Marg, Lucknow – 226007
                 </p>
                 <p className="text-[10px] text-[#B70D2B] font-bold">
-                  Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com
+                  Email: gcaaa07@gmail.com | Phone: +91 98392 70036 | Website: www.gcaalumniassociation.com
                 </p>
               </div>
             </div>
@@ -634,7 +634,7 @@ export const AlumniRegistrationPage = () => {
           <div className="pt-2 border-t border-neutral-300 text-center text-[8.5px] text-neutral-500 leading-tight">
             <p>Note: Official Life Membership ID &amp; Certificate will be issued upon document verification by the GCAAA Executive Committee.</p>
             <p className="font-semibold text-neutral-700 mt-0.5">
-              Govt. College of Architecture Alumni Association • FOAP-AKTU Campus, Lucknow • contact.gcaaa@gmail.com
+              Govt. College of Architecture Alumni Association • FOAP-AKTU Campus, Lucknow • Ph: +91 98392 70036 • gcaaa07@gmail.com
             </p>
           </div>
         </div>
@@ -1606,7 +1606,7 @@ export const AlumniRegistrationPage = () => {
                   <>Please ensure all spellings of your full name match your COA registration or degree certificate.</>,
                   <>Both Office and Residence addresses are recorded for safe courier delivery of official certificates.</>,
                   <>When paying via UPI, NEFT or IMPS, please note the 12-digit UTR number and mention it accurately.</>,
-                  <>For any queries, write to Secretariat at <span className="font-bold text-[#B70D2B]">contact.gcaaa@gmail.com</span>.</>,
+                  <>For any queries, write to Secretariat at <span className="font-bold text-[#B70D2B]">gcaaa07@gmail.com</span> or call <span className="font-bold text-[#B70D2B]">+91 98392 70036</span>.</>,
                 ]},
               ].map((sec) => (
                 <div key={sec.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/50 flex flex-col">

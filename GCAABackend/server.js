@@ -100,6 +100,7 @@ app.get('/', (req, res) => {
         registeredMembers: '/api/registered-members',
         batchAlumni: '/api/batch-alumni',
         electionNominations: '/api/election-nominations',
+        blogs: '/api/blogs',
         stats: '/api/registered-members/stats',
         health: '/api/health',
       },

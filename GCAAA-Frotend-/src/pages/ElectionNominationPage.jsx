@@ -629,7 +629,7 @@ export const ElectionNominationPage = () => {
                   Faculty of Architecture, AKTU (formerly GCA Lucknow / GBTU), Tagore Marg, Lucknow – 226007
                 </p>
                 <p className="text-[10px] text-[#B70D2B] font-bold">
-                  Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com
+                  Email: gcaaa07@gmail.com | Phone: +91 98392 70036 | Website: www.gcaalumniassociation.com
                 </p>
               </div>
             </div>
@@ -833,7 +833,7 @@ export const ElectionNominationPage = () => {
           <div className="pt-2 border-t border-neutral-300 text-center text-[8.5px] text-neutral-500 leading-tight">
             <p>Note: This is an official computer-generated nomination submission receipt. Nomination validity is subject to final voter roll scrutiny.</p>
             <p className="font-semibold text-neutral-700 mt-0.5">
-              Govt. College of Architecture Alumni Association • FOAP-AKTU Campus, Lucknow • contact.gcaaa@gmail.com
+              Govt. College of Architecture Alumni Association • FOAP-AKTU Campus, Lucknow • Ph: +91 98392 70036 • gcaaa07@gmail.com
             </p>
           </div>
         </div>
