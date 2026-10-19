@@ -35,10 +35,10 @@ export const EventSection = () => {
 
   const scheduleItems = [
     { time: '10:00 AM', title: 'Registration & Welcome Tea', desc: 'Badge collection & morning networking' },
-    { time: '11:30 AM', title: 'Annual GBM Proceedings', desc: 'Association updates & key addresses' },
-    { time: '01:30 PM', title: 'Fellowship Lunch', desc: 'Inter-batch networking across faculty & alumni' },
-    { time: '03:30 PM', title: 'Jubilee Batch Felicitation', desc: 'Honoring Batch 2001 (25 Yrs) & 1986 (40 Yrs)' },
-    { time: '06:00 PM', title: 'Cultural Night & Dinner', desc: 'Musical evening, memories & gala dinner' },
+    { time: '11:30 AM', title: 'Annual Dharohar Proceedings', desc: 'Association updates & key addresses' },
+    { time: '01:00 PM', title: 'Fellowship Lunch', desc: 'Inter-batch networking across faculty & alumni' },
+    { time: '02:30 PM', title: 'Jubilee Batch Felicitation', desc: 'Honoring Batch 2001 (25 Yrs) & 1986 (40 Yrs)' },
+    { time: '08:00 PM', title: 'Cultural Night & Dinner', desc: 'Musical evening, memories & gala dinner' },
   ];
 
   return (

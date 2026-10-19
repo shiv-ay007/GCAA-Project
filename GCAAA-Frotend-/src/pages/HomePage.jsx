@@ -2,6 +2,7 @@
   import { ArrowRight, Sparkles, Calendar, MapPin } from 'lucide-react';
   import heroBg from '@/assets/images/clg.png';
   import { AboutSection } from '@/components/home/AboutSection';
+  import { CampusHeritageSection } from '@/components/home/CampusHeritageSection';
   import { NoticesSection } from '@/components/home/NoticesSection';
   import { DharoharSection } from '@/components/home/DharoharSection';
   import { EventSection } from '@/components/home/EventSection';
@@ -137,6 +138,11 @@
             3. ABOUT SECTION
         ======================================================== */}
         <AboutSection />
+
+        {/* ========================================================
+            CAMPUS & ARCHITECTURAL HERITAGE SECTION
+        ======================================================== */}
+        <CampusHeritageSection />
 
         {/* ========================================================
             4. NOTICES & ANNOUNCEMENTS SECTION (CIRCULARS & NOTICES)

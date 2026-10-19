@@ -1,10 +1,17 @@
 GCAAA-Frontend/.env
+GCAAA-Frontend/.env.production
 GCAAA-Frontend/node_modules
+GCAAA-Frotend-/.env*
+GCAAA-Frotend-/node_modules
 gcaaaadmin/node_modules
 gcaaaadmin/.env
-gcaaaadmin/node_modules
+gcaaaadmin/.env.production
 GCAABackend/node_modules
 GCAABackend/.env
+*.zip
+*.tar
+*.gz
+*.rar
 # Logs
 
 

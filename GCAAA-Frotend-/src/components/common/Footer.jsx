@@ -203,7 +203,7 @@ export const Footer = () => {
               <img
                 src={codeCrafterLogo}
                 alt="CodeCrafter"
-                className="h-6 sm:h-7 w-auto object-contain mix-blend-screen"
+                className="h-6 sm:h-7 w-auto object-contain brightness-0 invert"
               />
             </a>
           </div>

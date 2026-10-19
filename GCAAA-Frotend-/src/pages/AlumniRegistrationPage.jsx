@@ -672,7 +672,32 @@ export const AlumniRegistrationPage = () => {
         </section>
 
         {/* FORM (Full Navbar Width: max-w-[1400px]) */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-6 sm:py-8">
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-6 sm:py-8 space-y-6">
+          {/* Already Registered / View Directory Banner Card */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-neutral-800">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 border border-amber-400/30 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h5 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400">
+                  Know Your GCAAA membership number
+
+                </h5>
+                <p className="text-xs text-neutral-300 mt-0.5">
+                  Verify your details or search for batchmates in the directory.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/registered-members"
+              className="shrink-0 w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>View Directory</span>
+            </Link>
+          </div>
+
           <div className="bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden">
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="w-full flex flex-col space-y-6">
@@ -1536,29 +1561,6 @@ export const AlumniRegistrationPage = () => {
             INSTRUCTIONS & EXISTING MEMBERS (Full Navbar Width: max-w-[1400px])
         ======================================================== */}
         <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 pb-12 sm:pb-16 space-y-6">
-          {/* Already Registered / View Directory Banner Card */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-neutral-800">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 border border-amber-400/30 flex items-center justify-center shrink-0">
-                <Users className="w-5 h-5" />
-              </div>
-              <div>
-                <h5 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400">
-                  Already Registered?
-                </h5>
-                <p className="text-xs text-neutral-300 mt-0.5">
-                  Verify your details or search for batchmates in the directory.
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/registered-members"
-              className="shrink-0 px-5 py-2.5 bg-white text-neutral-900 hover:bg-neutral-100 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>View Directory</span>
-            </Link>
-          </div>
 
           {/* Process of receiving Membership Card */}
           <div className="bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden p-6 sm:p-8 space-y-6">
@@ -1583,19 +1585,19 @@ export const AlumniRegistrationPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { id: 'eligibility', title: 'Eligibility of Application', items: [
-                  <>Any person who has passed degree course in Architecture i.e. <strong>B. Arch.</strong> from a recognized University or Govt. College of Architecture (GCA Lucknow / FOAP AKTU / GBTU).</>,
+                  <>Any person who has completed  B.Arch., M.Arch. (General/Interior/Environment), M.Plan (MURP/MIPM), or PhD in Architecture & Planning from GCA Lucknow, FOAP–AKTU, or GBTU..</>,
                   <>Possess a 5-year Architectural Degree recognized by <strong>Council of Architecture (COA)</strong>, India.</>,
                   <>Nominated or recommended by at least one active GCAAA member or registered alumnus.</>,
                 ]},
                 { id: 'benefits', title: 'Membership Benefits', items: [
-                  <><strong>Official Life Membership ID &amp; Certificate:</strong> Issued by GCA Alumni Association.</>,
+                  <><strong>Official Life Membership ID </strong> Issued by GCA Alumni Association.</>,
                   <><strong>Voting Rights in AGM / GBM:</strong> Full voting privileges in Annual General Body Meetings.</>,
                   <><strong>Verified Directory Listing:</strong> Listing in the global searchable Alumni Directory.</>,
                   <><strong>Reunion &amp; Event Privileges:</strong> Priority registration for events such as <strong>Dharohar 2026</strong>.</>,
                   <><strong>Professional Networking:</strong> Connect with distinguished alumni architects globally.</>,
                 ]},
                 { id: 'fee', title: 'Fee Details', items: [
-                  <><strong>Life Membership Fee:</strong> ₹ 2,000/- (Rupees Two Thousand Only) — One-time lifetime contribution.</>,
+                  <><strong>Life Membership Fee:</strong> ₹1,000/- + GST (Rupees One Thousand Only + Applicable GST) — One-time lifetime contribution.</>,
                   <><strong>Mode of Payment:</strong> Online UPI, NEFT, IMPS, or RTGS Transfer.</>,
                   <><strong>Payment In Favour Of:</strong> <em>&ldquo;Govt. College of Architecture Alumni Association&rdquo;</em>.</>,
                   <><strong>Receipt &amp; Acknowledgment:</strong> Digital receipt generated upon account clearance.</>,
