@@ -15,17 +15,17 @@ export const FloatingSidePills = () => {
           1. LEFT SIDE FLOATING ACTION PILLS
       ======================================================== */}
       <div className="hidden md:flex fixed left-0 top-[48%] -translate-y-1/2 z-30 flex-col gap-3 pointer-events-auto">
-        {/* Left Pill 1: Election 2026 Nomination */}
+        {/* Left Pill 1: Life Membership Registration */}
         <Link
-          to="/election-nomination"
-          title="GCAAA Executive Body Election 2026 - 2028 Nomination Form"
+          to="/registration"
+          title="GCAAA Life Membership Registration"
           className={`${PILL_BASE} rounded-r-2xl border-r-2 border-y-2`}
         >
           <span
             style={{ writingMode: 'vertical-rl' }}
             className="rotate-180 tracking-widest whitespace-nowrap font-extrabold text-amber-200"
           >
-            Election 2026
+            Membership
           </span>
           <span className="absolute inset-y-0 right-0 w-0.5 bg-amber-400 opacity-80 group-hover:opacity-100 transition-opacity" />
         </Link>

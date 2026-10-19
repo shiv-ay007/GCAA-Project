@@ -1,8 +1,8 @@
-const nodemailer = require('nodemailer');
-const {
+import nodemailer from 'nodemailer';
+import {
   generateRegistrationReceiptPdf,
   generateNominationReceiptPdf,
-} = require('./pdfService');
+} from './pdfService.js';
 
 /**
  * Creates and returns Nodemailer transporter using credentials from .env
@@ -98,7 +98,7 @@ const sendRegistrationReceiptEmail = async (member) => {
           <strong style="color: #0f172a;">GCAAA Alumni Secretariat</strong><br/>
           Govt. College of Architecture Alumni Association<br/>
           Tagore Marg, Lucknow – 226007, Uttar Pradesh<br/>
-          Email: contact.gcaaa@gmail.com
+          Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com
         </div>
       </div>
     </body>
@@ -220,7 +220,7 @@ const sendElectionNominationReceiptEmail = async (nomination) => {
           <strong style="color: #0f172a;">Office of the Returning Officer</strong><br/>
           GCAAA Election Commission 2026<br/>
           Govt. College of Architecture Alumni Association, Tagore Marg, Lucknow<br/>
-          Email: contact.gcaaa@gmail.com
+          Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com
         </div>
       </div>
     </body>
@@ -267,7 +267,12 @@ Email: contact.gcaaa@gmail.com
   }
 };
 
-module.exports = {
+export {
+  sendRegistrationReceiptEmail,
+  sendElectionNominationReceiptEmail,
+};
+
+export default {
   sendRegistrationReceiptEmail,
   sendElectionNominationReceiptEmail,
 };

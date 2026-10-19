@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const registeredMemberSchema = new mongoose.Schema(
   {
@@ -145,4 +145,4 @@ const registeredMemberSchema = new mongoose.Schema(
 // Compound text index for high-performance searching by name and membershipNo
 registeredMemberSchema.index({ name: 'text', membershipNo: 'text' });
 
-module.exports = mongoose.model('RegisteredMember', registeredMemberSchema);
+export default mongoose.model('RegisteredMember', registeredMemberSchema);

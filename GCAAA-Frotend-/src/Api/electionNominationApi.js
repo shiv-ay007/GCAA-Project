@@ -1,14 +1,5 @@
 import axios from 'axios';
-
-const isLocal =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const LOCAL_URL = 'http://localhost:5000/api';
-const REMOTE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  'https://gcaa-project.onrender.com/api';
+import { isLocal, LOCAL_URL, REMOTE_URL } from './config';
 
 // Prioritize local server when running locally so newly added features work immediately
 const PRIMARY_BASE_URL = isLocal ? LOCAL_URL : REMOTE_URL;

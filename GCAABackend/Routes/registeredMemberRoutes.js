@@ -1,6 +1,5 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getRegisteredMembers,
   getMemberStats,
   getMemberById,
@@ -10,7 +9,9 @@ const {
   bulkSeedMembers,
   registerAlumni,
   verifyMembershipNumber,
-} = require('../Controllers/registeredMemberController');
+} from '../Controllers/registeredMemberController.js';
+
+const router = express.Router();
 
 // Verification Endpoint
 router.get('/verify/:membershipNo', verifyMembershipNumber);
@@ -31,4 +32,4 @@ router.get('/:id', getMemberById);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
 
-module.exports = router;
+export default router;

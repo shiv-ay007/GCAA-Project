@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const electionNominationSchema = new mongoose.Schema(
   {
@@ -157,4 +157,4 @@ electionNominationSchema.pre('save', function () {
   }
 });
 
-module.exports = mongoose.model('ElectionNomination', electionNominationSchema);
+export default mongoose.model('ElectionNomination', electionNominationSchema);

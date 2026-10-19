@@ -1,4 +1,4 @@
-const cloudinary = require('cloudinary').v2;
+import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,7 +13,7 @@ cloudinary.config({
  * @param {string} folder - Target folder in Cloudinary
  * @returns {Promise<string|null>} - Secure URL of uploaded image
  */
-const uploadToCloudinary = async (fileStr, folder = 'gcaaa/alumni') => {
+export const uploadToCloudinary = async (fileStr, folder = 'gcaaa/alumni') => {
   if (!fileStr || typeof fileStr !== 'string' || !fileStr.trim()) {
     return null;
   }
@@ -39,7 +39,5 @@ const uploadToCloudinary = async (fileStr, folder = 'gcaaa/alumni') => {
   }
 };
 
-module.exports = {
-  cloudinary,
-  uploadToCloudinary,
-};
+export { cloudinary };
+export default { cloudinary, uploadToCloudinary };

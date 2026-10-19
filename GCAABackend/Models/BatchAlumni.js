@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const batchAlumniSchema = new mongoose.Schema(
   {
@@ -71,4 +71,4 @@ const batchAlumniSchema = new mongoose.Schema(
 // Search index for fast lookup
 batchAlumniSchema.index({ name: 'text', membershipNo: 'text' });
 
-module.exports = mongoose.model('BatchAlumni', batchAlumniSchema);
+export default mongoose.model('BatchAlumni', batchAlumniSchema);

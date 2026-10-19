@@ -1,6 +1,10 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const LOGO_PATH = path.join(__dirname, '../assets/logo.png');
 
@@ -101,7 +105,7 @@ function generateRegistrationReceiptPdf(member) {
 
       // Contact Line
       doc.fontSize(7).font('Helvetica-Bold').fillColor('#B70D2B').text(
-        'Email: contact.gcaaa@gmail.com | Website: www.gcaaa.org',
+        'Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com',
         textStartX,
         boxY + 41
       );
@@ -431,7 +435,7 @@ function generateNominationReceiptPdf(nomination) {
 
       // Contact Line
       doc.fontSize(7).font('Helvetica-Bold').fillColor('#B70D2B').text(
-        'Email: contact.gcaaa@gmail.com | Website: www.gcaaa.org',
+        'Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com',
         textStartX,
         boxY + 41
       );
@@ -647,7 +651,12 @@ function generateNominationReceiptPdf(nomination) {
   });
 }
 
-module.exports = {
+export {
+  generateRegistrationReceiptPdf,
+  generateNominationReceiptPdf,
+};
+
+export default {
   generateRegistrationReceiptPdf,
   generateNominationReceiptPdf,
 };

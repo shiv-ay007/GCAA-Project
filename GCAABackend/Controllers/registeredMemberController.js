@@ -1,13 +1,13 @@
-const RegisteredMember = require('../Models/RegisteredMember');
-const { uploadToCloudinary } = require('../Config/cloudinary');
-const { sendRegistrationReceiptEmail } = require('../Utils/emailService');
+import RegisteredMember from '../Models/RegisteredMember.js';
+import { uploadToCloudinary } from '../Config/cloudinary.js';
+import { sendRegistrationReceiptEmail } from '../Utils/emailService.js';
 
 /**
  * @desc    Get all registered members with search, pagination & filtering
  * @route   GET /api/registered-members
  * @access  Public
  */
-exports.getRegisteredMembers = async (req, res) => {
+export const getRegisteredMembers = async (req, res) => {
   try {
     const {
       search = '',
@@ -123,7 +123,7 @@ exports.getRegisteredMembers = async (req, res) => {
  * @route   GET /api/registered-members/stats
  * @access  Public / Admin
  */
-exports.getMemberStats = async (req, res) => {
+export const getMemberStats = async (req, res) => {
   try {
     const totalMembers = await RegisteredMember.countDocuments({ isDeleted: { $ne: true } });
     const verifiedMembers = await RegisteredMember.countDocuments({
@@ -165,7 +165,7 @@ exports.getMemberStats = async (req, res) => {
  * @route   GET /api/registered-members/:id
  * @access  Public
  */
-exports.getMemberById = async (req, res) => {
+export const getMemberById = async (req, res) => {
   try {
     const member = await RegisteredMember.findOne({
       _id: req.params.id,
@@ -196,7 +196,7 @@ exports.getMemberById = async (req, res) => {
  * @route   POST /api/registered-members
  * @access  Admin
  */
-exports.createMember = async (req, res) => {
+export const createMember = async (req, res) => {
   try {
     const { name, membershipNo, year, cohort, course, email, mobile, status } = req.body;
 
@@ -257,7 +257,7 @@ exports.createMember = async (req, res) => {
  * @route   PUT /api/registered-members/:id
  * @access  Admin
  */
-exports.updateMember = async (req, res) => {
+export const updateMember = async (req, res) => {
   try {
     const { name, membershipNo, year, cohort, course, email, mobile, status, sno } = req.body;
 
@@ -315,7 +315,7 @@ exports.updateMember = async (req, res) => {
  * @route   DELETE /api/registered-members/:id
  * @access  Admin
  */
-exports.deleteMember = async (req, res) => {
+export const deleteMember = async (req, res) => {
   try {
     const member = await RegisteredMember.findByIdAndUpdate(
       req.params.id,
@@ -348,7 +348,7 @@ exports.deleteMember = async (req, res) => {
  * @route   POST /api/registered-members/bulk-seed
  * @access  Admin
  */
-exports.bulkSeedMembers = async (req, res) => {
+export const bulkSeedMembers = async (req, res) => {
   try {
     const { members = [] } = req.body;
 
@@ -467,14 +467,14 @@ async function generateStandardMembershipNo(passingYear, course = '') {
   return candidate;
 }
 
-exports.generateStandardMembershipNo = generateStandardMembershipNo;
+export { generateStandardMembershipNo };
 
 /**
  * @desc    Submit alumni registration from public website
  * @route   POST /api/registered-members/register
  * @access  Public
  */
-exports.registerAlumni = async (req, res) => {
+export const registerAlumni = async (req, res) => {
   try {
     const {
       salutation = 'Ar.',
@@ -663,7 +663,7 @@ exports.registerAlumni = async (req, res) => {
  * @route   GET /api/registered-members/verify/:membershipNo
  * @access  Public
  */
-exports.verifyMembershipNumber = async (req, res) => {
+export const verifyMembershipNumber = async (req, res) => {
   try {
     const { membershipNo } = req.params;
     if (!membershipNo || !membershipNo.trim()) {
@@ -700,5 +700,18 @@ exports.verifyMembershipNumber = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+export default {
+  getRegisteredMembers,
+  getMemberStats,
+  getMemberById,
+  createMember,
+  updateMember,
+  deleteMember,
+  bulkSeedMembers,
+  generateStandardMembershipNo,
+  registerAlumni,
+  verifyMembershipNumber,
 };
 

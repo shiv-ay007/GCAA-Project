@@ -7,16 +7,13 @@ export const DharoharInviteModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Automatically trigger modal shortly after website loads
+  // Automatically trigger modal on EVERY page load / refresh
   useEffect(() => {
-    const hasSeenPopup = sessionStorage.getItem('dharohar_invite_dismissed');
-    if (!hasSeenPopup) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 900); // 900ms smooth delay after page load
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 700); // 700ms smooth delay after page refresh
 
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, []);
 
   // Close on Escape key press
@@ -32,13 +29,11 @@ export const DharoharInviteModal = () => {
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('dharohar_invite_dismissed', 'true');
   };
 
   const handleNavigateToRegister = () => {
     setIsOpen(false);
-    sessionStorage.setItem('dharohar_invite_dismissed', 'true');
-    navigate('/contact');
+    navigate('/registration');
   };
 
   if (!isOpen) return null;

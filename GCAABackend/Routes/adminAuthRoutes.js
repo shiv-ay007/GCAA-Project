@@ -1,15 +1,14 @@
-const express = require('express');
-const router = express.Router();
-
-const {
+import express from 'express';
+import {
   loginAdmin,
   registerAdmin,
   getAdminProfile,
   updateAdminProfile,
   changeAdminPassword,
-} = require('../Controllers/adminAuthController');
+} from '../Controllers/adminAuthController.js';
+import { protectAdmin } from '../Middlewares/authMiddleware.js';
 
-const { protectAdmin } = require('../Middlewares/authMiddleware');
+const router = express.Router();
 
 // Public routes
 router.post('/login', loginAdmin);
@@ -20,4 +19,4 @@ router.get('/me', protectAdmin, getAdminProfile);
 router.put('/profile', protectAdmin, updateAdminProfile);
 router.put('/change-password', protectAdmin, changeAdminPassword);
 
-module.exports = router;
+export default router;

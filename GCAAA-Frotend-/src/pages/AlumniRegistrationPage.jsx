@@ -473,7 +473,7 @@ export const AlumniRegistrationPage = () => {
                   Faculty of Architecture, AKTU (formerly GCA Lucknow / GBTU), Tagore Marg, Lucknow – 226007
                 </p>
                 <p className="text-[10px] text-[#B70D2B] font-bold">
-                  Email: contact.gcaaa@gmail.com | Website: www.gcaaa.org
+                  Email: contact.gcaaa@gmail.com | Website: www.gcaalumniassociation.com
                 </p>
               </div>
             </div>

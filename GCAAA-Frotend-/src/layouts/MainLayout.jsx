@@ -3,8 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { FloatingSidePills } from '@/components/common/FloatingSidePills';
-// import { DharoharInviteModal } from '@/components/common/DharoharInviteModal';
-import { ElectionNominationModal } from '@/components/common/ElectionNominationModal';
+import { DharoharInviteModal } from '@/components/common/DharoharInviteModal';
+// import { ElectionNominationModal } from '@/components/common/ElectionNominationModal';
 
 export const MainLayout = () => {
   const { pathname, search } = useLocation();
@@ -18,10 +18,10 @@ export const MainLayout = () => {
       <Navbar />
       <div className="print:hidden">
         <FloatingSidePills />
-        {/* Old Dharohar Popup commented out as requested */}
-        {/* <DharoharInviteModal /> */}
-        {/* New Election Nomination Popup */}
-        <ElectionNominationModal />
+        {/* Dharohar Invite Banner Popup */}
+        <DharoharInviteModal />
+        {/* Election Nomination Popup (commented out) */}
+        {/* <ElectionNominationModal /> */}
       </div>
       <main className="flex-1 print:p-0 print:m-0">
         <Outlet />

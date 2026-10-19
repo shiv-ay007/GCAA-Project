@@ -1,10 +1,10 @@
-const jwt = require('jsonwebtoken');
-const Admin = require('../Models/Admin');
+import jwt from 'jsonwebtoken';
+import Admin from '../Models/Admin.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gcaaa_jwt_secure_auth_secret_key_2026_xyz987';
 
 // Middleware to protect routes with JWT Bearer Token
-const protectAdmin = async (req, res, next) => {
+export const protectAdmin = async (req, res, next) => {
   let token;
 
   if (
@@ -52,7 +52,7 @@ const protectAdmin = async (req, res, next) => {
 };
 
 // Role-based authorization middleware
-const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.admin || !roles.includes(req.admin.role)) {
       return res.status(403).json({
@@ -64,7 +64,7 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-module.exports = {
+export default {
   protectAdmin,
   authorizeRoles,
 };

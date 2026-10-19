@@ -1,6 +1,6 @@
-const ElectionNomination = require('../Models/ElectionNomination');
-const { uploadToCloudinary } = require('../Config/cloudinary');
-const { sendElectionNominationReceiptEmail } = require('../Utils/emailService');
+import ElectionNomination from '../Models/ElectionNomination.js';
+import { uploadToCloudinary } from '../Config/cloudinary.js';
+import { sendElectionNominationReceiptEmail } from '../Utils/emailService.js';
 
 /**
  * Helper to upload image (base64 data URI) to Cloudinary or keep as is
@@ -32,7 +32,7 @@ async function processPhotoUpload(photoData, folder = 'gcaaa/election_nomination
  * @route   POST /api/election-nominations
  * @access  Public
  */
-exports.submitNomination = async (req, res) => {
+export const submitNomination = async (req, res) => {
   try {
     const {
       term = '2026-2028',
@@ -244,7 +244,7 @@ exports.submitNomination = async (req, res) => {
  * @route   GET /api/election-nominations
  * @access  Public / Admin
  */
-exports.getAllNominations = async (req, res) => {
+export const getAllNominations = async (req, res) => {
   try {
     const { post, status, search } = req.query;
     const filter = { isDeleted: { $ne: true } };
@@ -284,7 +284,7 @@ exports.getAllNominations = async (req, res) => {
  * @route   GET /api/election-nominations/:id
  * @access  Public
  */
-exports.getNominationById = async (req, res) => {
+export const getNominationById = async (req, res) => {
   try {
     const { id } = req.params;
     const nomination = await ElectionNomination.findOne({
@@ -317,7 +317,7 @@ exports.getNominationById = async (req, res) => {
  * @route   PUT /api/election-nominations/:id
  * @access  Admin
  */
-exports.updateNominationStatus = async (req, res) => {
+export const updateNominationStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
@@ -359,7 +359,7 @@ exports.updateNominationStatus = async (req, res) => {
  * @route   DELETE /api/election-nominations/:id
  * @access  Admin
  */
-exports.deleteNomination = async (req, res) => {
+export const deleteNomination = async (req, res) => {
   try {
     const { id } = req.params;
     const nomination = await ElectionNomination.findOneAndUpdate(
@@ -387,4 +387,12 @@ exports.deleteNomination = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+export default {
+  submitNomination,
+  getAllNominations,
+  getNominationById,
+  updateNominationStatus,
+  deleteNomination,
 };

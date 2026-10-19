@@ -17,7 +17,7 @@ export const menuItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Registered Members', path: '/registered-members', icon: UserCheck },
   { name: 'All Batches of GCAAA', path: '/all-batches', icon: Users },
-  { name: 'Election Nominations', path: '/election-nominations', icon: Vote },
+  // { name: 'Election Nominations', path: '/election-nominations', icon: Vote },
   { name: 'Events', path: '/events', icon: CalendarDays },
   { name: 'Gallery', path: '/gallery', icon: Image },
   { name: 'Publications', path: '/publications', icon: BookOpen },

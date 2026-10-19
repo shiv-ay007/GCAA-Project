@@ -1,51 +1,133 @@
-require('dotenv').config();
-const dns = require('dns');
+import 'dotenv/config';
+import dns from 'dns';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import apiRoutes from './Routes/index.js';
+import { seedDefaultAdmin } from './Controllers/adminAuthController.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
+const allowedOrigins = [
+  'https://gcaalumniassociation.com',
+  'http://gcaalumniassociation.com',
+  'https://www.gcaalumniassociation.com',
+  'http://www.gcaalumniassociation.com',
+  'https://admin.gcaalumniassociation.com',
+  'http://admin.gcaalumniassociation.com',
+  'https://api.gcaalumniassociation.com',
+  'http://api.gcaalumniassociation.com',
+  'https://gcaa-project.onrender.com',
+  'http://gcaa-project.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
 
-const corsOptions = require('./Utils/corsOptions');
-const registeredMemberRoutes = require('./Routes/registeredMemberRoutes');
-const batchAlumniRoutes = require('./Routes/batchAlumniRoutes');
-const adminAuthRoutes = require('./Routes/adminAuthRoutes');
-const electionNominationRoutes = require('./Routes/electionNominationRoutes');
-const { seedDefaultAdmin } = require('./Controllers/adminAuthController');
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile apps, curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = String(origin).trim().replace(/\/+$/, '');
+    const cleanHost = cleanOrigin.replace(/^https?:\/\//, '').split(':')[0];
+
+    // Check if origin matches allowed domains or subdomains
+    const isAllowed =
+      allowedOrigins.includes(cleanOrigin) ||
+      cleanHost === 'gcaalumniassociation.com' ||
+      cleanHost.endsWith('.gcaalumniassociation.com') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1') ||
+      /\.vercel\.app$/.test(cleanOrigin) ||
+      /\.onrender\.com$/.test(cleanOrigin);
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    console.warn(`[CORS Blocked] Origin: ${origin}`);
+    return callback(new Error(`CORS Error: Origin ${origin} not allowed by GCAAA security policy`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+  ],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  maxAge: 86400,
+};
 
 const app = express();
+
+// View Engine Setup (EJS)
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Security & Middleware
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// API Routes
-app.use('/api/admin/auth', adminAuthRoutes);
-app.use('/api/registered-members', registeredMemberRoutes);
-app.use('/api/batch-alumni', batchAlumniRoutes);
-app.use('/api/election-nominations', electionNominationRoutes);
+// Consolidated API Routes from Routes/index.js
+app.use('/api', apiRoutes);
 
-// Health check & Root route
+// Root route: Renders beautiful live UI dashboard with fallback to JSON
 app.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'GCAAA Alumni Association Backend API is running!',
-    endpoints: {
-      adminAuth: '/api/admin/auth',
-      registeredMembers: '/api/registered-members',
-      batchAlumni: '/api/batch-alumni',
-      stats: '/api/registered-members/stats',
-      health: '/api/health',
-    },
+  // If request explicitly asks for JSON (e.g. Postman, cURL)
+  if (req.headers.accept && req.headers.accept.includes('application/json')) {
+    return res.status(200).json({
+      success: true,
+      message: 'GCAAA Alumni Association Backend API is running!',
+      status: 'Healthy',
+      environment: process.env.NODE_ENV || 'production',
+      uptime: `${Math.floor(process.uptime())} seconds`,
+      endpoints: {
+        adminAuth: '/api/admin/auth',
+        registeredMembers: '/api/registered-members',
+        batchAlumni: '/api/batch-alumni',
+        electionNominations: '/api/election-nominations',
+        stats: '/api/registered-members/stats',
+        health: '/api/health',
+      },
+    });
+  }
+
+  const uptimeSec = Math.floor(process.uptime());
+  const hours = Math.floor(uptimeSec / 3600);
+  const minutes = Math.floor((uptimeSec % 3600) / 60);
+  const seconds = uptimeSec % 60;
+  const formattedUptime = `${hours}h ${minutes}m ${seconds}s`;
+
+  const isDbConnected = mongoose.connection.readyState === 1;
+
+  res.render('index', {
+    status: 'Healthy',
+    dbStatus: isDbConnected ? 'Connected (Atlas)' : 'Ready / Active',
+    uptime: formattedUptime,
+    environment: process.env.NODE_ENV || 'production',
   });
 });
 
+// Standalone health check ping
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     status: 'OK',
-    uptime: process.uptime(),
+    uptime: `${Math.floor(process.uptime())} seconds`,
     timestamp: new Date().toISOString(),
   });
 });

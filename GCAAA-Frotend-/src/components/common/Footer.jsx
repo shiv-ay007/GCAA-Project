@@ -183,30 +183,38 @@ export const Footer = () => {
       </div>
 
       {/* ========================================================
-          BOTTOM COPYRIGHT BAR — SIMPLIFIED
+          BOTTOM COPYRIGHT BAR — SINGLE LINE & LEFT ALIGNED
       ======================================================== */}
-      <div className="border-t border-neutral-900 bg-neutral-950/90 py-5">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="border-t border-neutral-900 bg-neutral-950/90 py-4">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 flex flex-col lg:flex-row items-center justify-start gap-3 lg:gap-6">
 
-          {/* LEFT: Copyright text */}
-          <p className="text-xs sm:text-sm text-neutral-400 text-center sm:text-left leading-relaxed">
+          {/* LEFT: Precision Crafted + Logo */}
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <span className="text-xs sm:text-sm text-neutral-400 text-center sm:text-left leading-relaxed whitespace-nowrap">
+              Precision Crafted with Digital Intelligence by
+            </span>
+            <a
+              href="https://www.codecrafter.co.in/" 
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="CodeCrafter"
+              className="shrink-0 opacity-90 hover:opacity-100 transition-opacity flex items-center"
+            >
+              <img
+                src={codeCrafterLogo}
+                alt="CodeCrafter"
+                className="h-6 sm:h-7 w-auto object-contain mix-blend-screen"
+              />
+            </a>
+          </div>
+
+          {/* SEPARATOR (Desktop only) */}
+          <span className="hidden lg:block text-neutral-700">|</span>
+
+          {/* RIGHT: Copyright text */}
+          <p className="text-xs sm:text-sm text-neutral-400 text-center lg:text-left leading-relaxed whitespace-nowrap">
             © {new Date().getFullYear()} Government College of Architecture Alumni Association. All Rights Reserved.
           </p>
-
-          {/* RIGHT: CodeCrafter logo */}
-          <a
-            href="https://codecrafter.in"  // 👈 apna CodeCrafter website URL yahan daalo
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="CodeCrafter"
-            className="shrink-0 opacity-80 hover:opacity-100 transition-opacity"
-          >
-            <img
-              src={codeCrafterLogo}
-              alt="CodeCrafter"
-              className="h-8 sm:h-9 w-auto object-contain"
-            />
-          </a>
 
         </div>
       </div>

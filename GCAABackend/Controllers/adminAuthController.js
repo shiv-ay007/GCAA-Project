@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const Admin = require('../Models/Admin');
+import jwt from 'jsonwebtoken';
+import Admin from '../Models/Admin.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gcaaa_jwt_secure_auth_secret_key_2026_xyz987';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -293,7 +293,16 @@ const seedDefaultAdmin = async () => {
   }
 };
 
-module.exports = {
+export {
+  loginAdmin,
+  registerAdmin,
+  getAdminProfile,
+  updateAdminProfile,
+  changeAdminPassword,
+  seedDefaultAdmin,
+};
+
+export default {
   loginAdmin,
   registerAdmin,
   getAdminProfile,

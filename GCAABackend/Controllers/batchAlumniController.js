@@ -1,11 +1,11 @@
-const BatchAlumni = require('../Models/BatchAlumni');
+import BatchAlumni from '../Models/BatchAlumni.js';
 
 /**
  * @desc    Get all batch alumni with cohort tabs, batch year filtering, search & pagination
  * @route   GET /api/batch-alumni
  * @access  Public
  */
-exports.getBatchAlumni = async (req, res) => {
+export const getBatchAlumni = async (req, res) => {
   try {
     const {
       search = '',
@@ -106,7 +106,7 @@ exports.getBatchAlumni = async (req, res) => {
  * @route   GET /api/batch-alumni/stats
  * @access  Public
  */
-exports.getBatchAlumniStats = async (req, res) => {
+export const getBatchAlumniStats = async (req, res) => {
   try {
     const total = await BatchAlumni.countDocuments();
     const paid = await BatchAlumni.countDocuments({ status: 'Paid' });
@@ -145,7 +145,7 @@ exports.getBatchAlumniStats = async (req, res) => {
  * @route   GET /api/batch-alumni/:id
  * @access  Public
  */
-exports.getBatchAlumnusById = async (req, res) => {
+export const getBatchAlumnusById = async (req, res) => {
   try {
     const record = await BatchAlumni.findById(req.params.id);
     if (!record) {
@@ -173,7 +173,7 @@ exports.getBatchAlumnusById = async (req, res) => {
  * @route   POST /api/batch-alumni
  * @access  Admin
  */
-exports.createBatchAlumnus = async (req, res) => {
+export const createBatchAlumnus = async (req, res) => {
   try {
     const { name, year, cohort = 'all', course, membershipNo, email, mobile, status = 'Paid' } = req.body;
 
@@ -219,7 +219,7 @@ exports.createBatchAlumnus = async (req, res) => {
  * @route   PUT /api/batch-alumni/:id
  * @access  Admin
  */
-exports.updateBatchAlumnus = async (req, res) => {
+export const updateBatchAlumnus = async (req, res) => {
   try {
     const { name, year, cohort, course, membershipNo, email, mobile, status, sno } = req.body;
 
@@ -260,7 +260,7 @@ exports.updateBatchAlumnus = async (req, res) => {
  * @route   DELETE /api/batch-alumni/:id
  * @access  Admin
  */
-exports.deleteBatchAlumnus = async (req, res) => {
+export const deleteBatchAlumnus = async (req, res) => {
   try {
     const record = await BatchAlumni.findByIdAndDelete(req.params.id);
     if (!record) {
@@ -279,4 +279,13 @@ exports.deleteBatchAlumnus = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+export default {
+  getBatchAlumni,
+  getBatchAlumniStats,
+  getBatchAlumnusById,
+  createBatchAlumnus,
+  updateBatchAlumnus,
+  deleteBatchAlumnus,
 };

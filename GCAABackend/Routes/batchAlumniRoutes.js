@@ -1,13 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getBatchAlumni,
   getBatchAlumniStats,
   getBatchAlumnusById,
   createBatchAlumnus,
   updateBatchAlumnus,
   deleteBatchAlumnus,
-} = require('../Controllers/batchAlumniController');
+} from '../Controllers/batchAlumniController.js';
+
+const router = express.Router();
 
 router.get('/stats', getBatchAlumniStats);
 router.get('/', getBatchAlumni);
@@ -16,4 +17,4 @@ router.get('/:id', getBatchAlumnusById);
 router.put('/:id', updateBatchAlumnus);
 router.delete('/:id', deleteBatchAlumnus);
 
-module.exports = router;
+export default router;
