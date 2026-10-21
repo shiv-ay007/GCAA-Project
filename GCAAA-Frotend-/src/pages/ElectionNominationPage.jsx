@@ -65,7 +65,7 @@ export const ELECTION_POSTS = [
     sno: 6,
     post: 'Executive Member (i)',
     seats: '1 Post',
-    eligibility: 'Nominated by Partner College',
+    eligibility: 'Nominated by Patron College',
   },
   {
     sno: 7,
