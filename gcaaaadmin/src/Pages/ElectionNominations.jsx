@@ -24,6 +24,7 @@ import {
   MapPin,
   IdCard,
   ExternalLink,
+  FileSignature,
 } from 'lucide-react'
 import {
   fetchElectionNominations,
@@ -170,6 +171,7 @@ const ElectionNominations = () => {
       'Candidate Mobile',
       'Candidate Email',
       'Candidate Address',
+      'Candidate Signature',
       'Proposer Name',
       'Proposer Membership No',
       'Proposer Mobile',
@@ -190,6 +192,7 @@ const ElectionNominations = () => {
       `"${n.candidate?.mobile || ''}"`,
       `"${n.candidate?.email || ''}"`,
       `"${(n.candidate?.address || '').replace(/"/g, '""')}"`,
+      `"${n.candidate?.signature || ''}"`,
       `"${n.proposer?.fullName || ''}"`,
       `"${n.proposer?.membershipNo || ''}"`,
       `"${n.proposer?.mobile || ''}"`,
@@ -515,6 +518,23 @@ const ElectionNominations = () => {
                               </span>
                             </div>
                           )}
+
+                          {/* Row 4: Signature Badge (if uploaded) */}
+                          {nomination.candidate?.signature && (
+                            <div className="mt-1 flex items-center">
+                              <a
+                                href={nomination.candidate.signature}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 px-1.5 py-0.5 rounded transition cursor-pointer"
+                                title="View candidate signature in new tab"
+                              >
+                                <FileSignature size={10} className="text-blue-600" />
+                                <span>Signature</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -660,28 +680,69 @@ const ElectionNominations = () => {
                   Candidate Information
                 </h4>
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  {selectedNomination.candidate?.photo ? (
-                    <div className="shrink-0 text-center">
-                      <img
-                        src={selectedNomination.candidate.photo}
-                        alt="Candidate"
-                        className="w-28 h-32 object-cover rounded-xl border border-neutral-300 shadow-sm"
-                      />
-                      <a
-                        href={selectedNomination.candidate.photo}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] font-bold text-[#700018] hover:underline inline-flex items-center gap-1 mt-1.5"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        View Full Photo
-                      </a>
+                  {/* Photo & Signature visual column */}
+                  <div className="flex flex-row sm:flex-col items-center gap-3 shrink-0">
+                    {/* Candidate Photograph */}
+                    <div className="text-center">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+                        Photograph
+                      </span>
+                      {selectedNomination.candidate?.photo ? (
+                        <>
+                          <img
+                            src={selectedNomination.candidate.photo}
+                            alt="Candidate"
+                            className="w-24 h-28 object-cover rounded-xl border border-neutral-300 shadow-xs"
+                          />
+                          <a
+                            href={selectedNomination.candidate.photo}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] font-bold text-[#700018] hover:underline inline-flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            View Photo
+                          </a>
+                        </>
+                      ) : (
+                        <div className="w-24 h-28 bg-neutral-200 rounded-xl flex items-center justify-center text-neutral-400 font-bold text-xs">
+                          No Photo
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="w-28 h-32 bg-neutral-200 rounded-xl flex items-center justify-center text-neutral-400 shrink-0 font-bold">
-                      No Photo
+
+                    {/* Candidate Signature */}
+                    <div className="text-center">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+                        Signature
+                      </span>
+                      {selectedNomination.candidate?.signature ? (
+                        <>
+                          <div className="w-24 h-16 bg-white rounded-xl border border-neutral-300 p-1 flex items-center justify-center shadow-2xs overflow-hidden">
+                            <img
+                              src={selectedNomination.candidate.signature}
+                              alt="Candidate Signature"
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                          <a
+                            href={selectedNomination.candidate.signature}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] font-bold text-blue-700 hover:underline inline-flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            View Sig
+                          </a>
+                        </>
+                      ) : (
+                        <div className="w-24 h-16 bg-neutral-200/80 rounded-xl flex items-center justify-center text-neutral-400 font-medium text-[11px]">
+                          No Signature
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 text-xs">
                     <div>
                       <span className="text-neutral-500 block text-[11px]">Full Name:</span>
@@ -724,23 +785,25 @@ const ElectionNominations = () => {
                   <div className="flex items-start gap-3">
                     {selectedNomination.proposer?.photo ? (
                       <div className="shrink-0 text-center">
-                        <img
-                          src={selectedNomination.proposer.photo}
-                          alt="Proposer"
-                          className="w-16 h-20 object-cover rounded-lg border border-neutral-300 shadow-xs"
-                        />
+                        <div className="w-16 h-20 bg-white rounded-lg border border-neutral-300 p-1 flex items-center justify-center shadow-xs overflow-hidden">
+                          <img
+                            src={selectedNomination.proposer.photo}
+                            alt="Proposer Signature"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
                         <a
                           href={selectedNomination.proposer.photo}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[9px] text-[#700018] font-bold hover:underline block mt-0.5"
+                          className="text-[9px] text-blue-700 font-bold hover:underline block mt-0.5"
                         >
-                          View ↗
+                          View Sig ↗
                         </a>
                       </div>
                     ) : (
-                      <div className="w-16 h-20 bg-neutral-200 rounded-lg flex items-center justify-center text-neutral-400 font-bold shrink-0 text-[10px]">
-                        No Photo
+                      <div className="w-16 h-20 bg-neutral-200/80 rounded-lg flex items-center justify-center text-neutral-400 font-medium shrink-0 text-[10px]">
+                        No Sig
                       </div>
                     )}
                     <div className="space-y-1 flex-1">
@@ -779,23 +842,25 @@ const ElectionNominations = () => {
                   <div className="flex items-start gap-3">
                     {selectedNomination.seconder?.photo ? (
                       <div className="shrink-0 text-center">
-                        <img
-                          src={selectedNomination.seconder.photo}
-                          alt="Seconder"
-                          className="w-16 h-20 object-cover rounded-lg border border-neutral-300 shadow-xs"
-                        />
+                        <div className="w-16 h-20 bg-white rounded-lg border border-neutral-300 p-1 flex items-center justify-center shadow-xs overflow-hidden">
+                          <img
+                            src={selectedNomination.seconder.photo}
+                            alt="Seconder Signature"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
                         <a
                           href={selectedNomination.seconder.photo}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[9px] text-[#700018] font-bold hover:underline block mt-0.5"
+                          className="text-[9px] text-blue-700 font-bold hover:underline block mt-0.5"
                         >
-                          View ↗
+                          View Sig ↗
                         </a>
                       </div>
                     ) : (
-                      <div className="w-16 h-20 bg-neutral-200 rounded-lg flex items-center justify-center text-neutral-400 font-bold shrink-0 text-[10px]">
-                        No Photo
+                      <div className="w-16 h-20 bg-neutral-200/80 rounded-lg flex items-center justify-center text-neutral-400 font-medium shrink-0 text-[10px]">
+                        No Sig
                       </div>
                     )}
                     <div className="space-y-1 flex-1">

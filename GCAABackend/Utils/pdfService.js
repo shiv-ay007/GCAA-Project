@@ -610,7 +610,15 @@ function generateNominationReceiptPdf(nomination) {
       const sigLineY = decY + decH + 28;
       // Left line
       doc.strokeColor('#a1a1aa').lineWidth(0.8).moveTo(boxX + 14, sigLineY).lineTo(boxX + 180, sigLineY).stroke();
-      doc.fontSize(8.5).font('Helvetica-BoldOblique').fillColor('#171717').text(candidateName, boxX + 14, sigLineY - 11);
+      if (
+        nomination.candidate?.signature &&
+        typeof nomination.candidate.signature === 'string' &&
+        nomination.candidate.signature.startsWith('data:image')
+      ) {
+        drawPhotoOrPlaceholder(doc, nomination.candidate.signature, boxX + 14, sigLineY - 22, 80, 20, '');
+      } else {
+        doc.fontSize(8.5).font('Helvetica-BoldOblique').fillColor('#171717').text(candidateName, boxX + 14, sigLineY - 11);
+      }
       doc.fontSize(6.5).font('Helvetica-Bold').fillColor('#71717a').text('DIGITAL SIGNATURE OF CANDIDATE', boxX + 14, sigLineY + 3);
 
       // Right line

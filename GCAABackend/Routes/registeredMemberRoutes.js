@@ -20,7 +20,9 @@ router.get('/verify/:membershipNo', verifyMembershipNumber);
 router.post('/register', registerAlumni);
 
 // List & Stats
+console.log("-----Register member get wala api start------")
 router.get('/', getRegisteredMembers);
+console.log("-----Register member get wala api end------")
 router.get('/stats', getMemberStats);
 
 // Bulk Operations

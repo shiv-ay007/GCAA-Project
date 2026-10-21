@@ -8,6 +8,7 @@ import blogRoutes from './blogRoutes.js';
 const apiRoutes = express.Router();
 
 // Mount all modular API sub-routes
+console.log("-----Api Route wala api start------")
 apiRoutes.use('/admin/auth', adminAuthRoutes);
 apiRoutes.use('/registered-members', registeredMemberRoutes);
 apiRoutes.use('/batch-alumni', batchAlumniRoutes);
@@ -23,6 +24,7 @@ apiRoutes.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+console.log("-----Api Route wala api end------")
 
-export { apiRoutes };
+// export { apiRoutes };
 export default apiRoutes;

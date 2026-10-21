@@ -50,6 +50,10 @@ const electionNominationSchema = new mongoose.Schema(
         type: String,
         default: '',
       },
+      signature: {
+        type: String,
+        default: '',
+      },
     },
     proposer: {
       fullName: {
@@ -83,6 +87,10 @@ const electionNominationSchema = new mongoose.Schema(
         type: String,
         default: '',
       },
+      signature: {
+        type: String,
+        default: '',
+      },
     },
     seconder: {
       fullName: {
@@ -113,6 +121,10 @@ const electionNominationSchema = new mongoose.Schema(
         uppercase: true,
       },
       photo: {
+        type: String,
+        default: '',
+      },
+      signature: {
         type: String,
         default: '',
       },

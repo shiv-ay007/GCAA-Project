@@ -16,7 +16,9 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 const allowedOrigins = [
   'https://gcaalumniassociation.com',
+  'https://gcaalumniassociation.com/',
   'http://gcaalumniassociation.com',
+  'http://gcaalumniassociation.com/',
   'https://www.gcaalumniassociation.com',
   'http://www.gcaalumniassociation.com',
   'https://admin.gcaalumniassociation.com',
@@ -82,9 +84,12 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Consolidated API Routes from Routes/apiRoutes.js
+console.log("-----route wala api start------")
 app.use('/api', apiRoutes);
+console.log("-----route wala api end------")
 
 // Root route: Renders EJS status dashboard with safe JSON fallback
+console.log("-----Default api start------")
 app.get('/', (req, res) => {
   // If request explicitly asks for JSON (e.g. Postman, cURL)
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -135,6 +140,7 @@ app.get('/', (req, res) => {
     res.send(html);
   });
 });
+console.log("-----Default api end------")
 
 // Standalone health check ping
 app.get('/api/health', (req, res) => {

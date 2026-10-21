@@ -160,20 +160,23 @@ export const submitNomination = async (req, res) => {
       });
     }
 
-    // Process photo uploads
+    // Process photo and signature uploads
     let candidatePhotoUrl = '';
+    let candidateSignatureUrl = '';
     let proposerPhotoUrl = '';
     let seconderPhotoUrl = '';
 
     try {
-      [candidatePhotoUrl, proposerPhotoUrl, seconderPhotoUrl] = await Promise.all([
+      [candidatePhotoUrl, candidateSignatureUrl, proposerPhotoUrl, seconderPhotoUrl] = await Promise.all([
         processPhotoUpload(candidate.photo, 'gcaaa/election/candidates'),
+        processPhotoUpload(candidate.signature, 'gcaaa/election/candidates/signatures'),
         processPhotoUpload(proposer.photo, 'gcaaa/election/proposers'),
         processPhotoUpload(seconder.photo, 'gcaaa/election/seconders'),
       ]);
     } catch (e) {
       console.warn('Error during photo upload processing:', e.message);
       candidatePhotoUrl = candidate.photo || '';
+      candidateSignatureUrl = candidate.signature || '';
       proposerPhotoUrl = proposer.photo || '';
       seconderPhotoUrl = seconder.photo || '';
     }
@@ -193,6 +196,7 @@ export const submitNomination = async (req, res) => {
         address: candidate.address.trim(),
         membershipNo: candidate.membershipNo.trim().toUpperCase(),
         photo: candidatePhotoUrl,
+        signature: candidateSignatureUrl,
       },
       proposer: {
         fullName: proposer.fullName.trim(),

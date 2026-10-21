@@ -8,6 +8,7 @@ import { sendRegistrationReceiptEmail } from '../Utils/emailService.js';
  * @access  Public
  */
 export const getRegisteredMembers = async (req, res) => {
+  console.log("get member before try start------")
   try {
     const {
       search = '',
@@ -19,6 +20,7 @@ export const getRegisteredMembers = async (req, res) => {
       sortBy = 'createdAt',
       order = 'desc',
     } = req.query;
+    console.log("get member after try start------")
 
     // Build filter query (exclude soft-deleted records)
     const filter = { isDeleted: { $ne: true } };
@@ -108,7 +110,9 @@ export const getRegisteredMembers = async (req, res) => {
       isAll,
       data: dataWithSno,
     });
+    console.log("get member after try end------")
   } catch (error) {
+
     console.error('Error fetching registered members:', error);
     return res.status(500).json({
       success: false,
@@ -116,6 +120,7 @@ export const getRegisteredMembers = async (req, res) => {
       error: error.message,
     });
   }
+  console.log("get member after catch end------")
 };
 
 /**

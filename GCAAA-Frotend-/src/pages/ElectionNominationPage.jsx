@@ -20,6 +20,7 @@ import {
   Check,
   Gavel,
   CalendarDays,
+  FileSignature,
 } from 'lucide-react';
 import logoImg from '@/assets/images/logo.png';
 import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
@@ -75,7 +76,7 @@ export const ELECTION_POSTS = [
   {
     sno: 8,
     post: 'Executive Member (iii)',
-    seats: '2 Posts',
+    seats: '3 Posts',
     eligibility: 'Lifetime Member of GCAAA',
   },
 ];
@@ -90,6 +91,8 @@ const INITIAL_FORM_STATE = {
     membershipNo: '',
     photo: '',
     photoName: '',
+    signature: '',
+    signatureName: '',
   },
   proposer: {
     fullName: '',
@@ -293,8 +296,8 @@ export const ElectionNominationPage = () => {
     }
   };
 
-  // Handle Photo upload with base64 conversion & validation (Max 2MB)
-  const handlePhotoUpload = (section, e) => {
+  // Handle Photo / Signature upload with base64 conversion & validation (Max 10MB)
+  const handleFileUpload = (section, field, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -309,7 +312,7 @@ export const ElectionNominationPage = () => {
     if (file.size > 10 * 1024 * 1024) {
       setToastMessage({
         type: 'error',
-        text: 'Image size exceeds 10MB limit. Please upload a smaller photo.',
+        text: 'Image size exceeds 10MB limit. Please upload a smaller file.',
       });
       return;
     }
@@ -321,30 +324,33 @@ export const ElectionNominationPage = () => {
         ...prev,
         [section]: {
           ...prev[section],
-          photo: base64,
-          photoName: file.name,
+          [field]: base64,
+          [`${field}Name`]: file.name,
         },
       }));
 
       setFieldErrors((prev) => {
         const next = { ...prev };
-        delete next[`${section}.photo`];
+        delete next[`${section}.${field}`];
         return next;
       });
     };
     reader.readAsDataURL(file);
   };
 
-  const removePhoto = (section) => {
+  const removeFile = (section, field = 'photo') => {
     setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        photo: '',
-        photoName: '',
+        [field]: '',
+        [`${field}Name`]: '',
       },
     }));
   };
+
+  const handlePhotoUpload = (section, e) => handleFileUpload(section, 'photo', e);
+  const removePhoto = (section) => removeFile(section, 'photo');
 
   // Validation function
   const validateForm = async () => {
@@ -377,6 +383,9 @@ export const ElectionNominationPage = () => {
     if (!formData.candidate.photo) {
       errors['candidate.photo'] = 'Candidate photograph is mandatory';
     }
+    if (!formData.candidate.signature) {
+      errors['candidate.signature'] = 'Candidate signature is mandatory';
+    }
 
     // Proposer validation
     if (!formData.proposer.fullName.trim()) {
@@ -393,6 +402,9 @@ export const ElectionNominationPage = () => {
     if (!formData.proposer.membershipNo.trim()) {
       errors['proposer.membershipNo'] = 'Proposer Membership No. is required';
     }
+    if (!formData.proposer.photo) {
+      errors['proposer.photo'] = 'Proposer signature is mandatory';
+    }
 
     // Seconder validation
     if (!formData.seconder.fullName.trim()) {
@@ -408,6 +420,9 @@ export const ElectionNominationPage = () => {
     }
     if (!formData.seconder.membershipNo.trim()) {
       errors['seconder.membershipNo'] = 'Seconder Membership No. is required';
+    }
+    if (!formData.seconder.photo) {
+      errors['seconder.photo'] = 'Seconder signature is mandatory';
     }
 
     // Declaration validation
@@ -510,6 +525,7 @@ export const ElectionNominationPage = () => {
         candidateEmail: formData.candidate.email,
         candidateAddress: formData.candidate.address,
         candidatePhoto: formData.candidate.photo,
+        candidateSignature: formData.candidate.signature,
         proposerName: formData.proposer.fullName,
         proposerMembership: formData.proposer.membershipNo,
         proposerMobile: formData.proposer.mobile,
@@ -813,9 +829,19 @@ export const ElectionNominationPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-6 pt-4 text-[10px] items-end">
               <div>
-                <div className="border-b border-neutral-400 pb-1 font-serif italic text-xs font-bold text-neutral-900">
-                  {submitSuccess?.candidateName || formData.candidate.fullName}
-                </div>
+                {submitSuccess?.candidateSignature || formData.candidate.signature ? (
+                  <div className="h-10 flex items-end pb-1 border-b border-neutral-400">
+                    <img
+                      src={submitSuccess?.candidateSignature || formData.candidate.signature}
+                      alt="Candidate Signature"
+                      className="max-h-9 max-w-[140px] object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="border-b border-neutral-400 pb-1 font-serif italic text-xs font-bold text-neutral-900">
+                    {submitSuccess?.candidateName || formData.candidate.fullName}
+                  </div>
+                )}
                 <span className="text-[9px] font-bold text-neutral-500 uppercase mt-0.5 block">
                   Digital Signature of Candidate
                 </span>
@@ -1098,9 +1124,9 @@ export const ElectionNominationPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-              {/* Left 3 Columns: Text Inputs */}
-              <div className="lg:col-span-3 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Columns: Text Inputs */}
+              <div className="lg:col-span-7 xl:col-span-8 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {/* Full Name */}
                   <div>
@@ -1208,70 +1234,139 @@ export const ElectionNominationPage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Candidate Photograph Upload */}
-              <div className="flex flex-col items-center justify-center">
-                <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
-                  Photograph <span className="text-red-600 font-black">*</span>
-                </label>
-                <div
-                  className={`relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
-                    fieldErrors['candidate.photo']
-                      ? 'border-red-500 bg-red-50/40'
-                      : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-red-400'
-                  }`}
-                >
-                  {formData.candidate.photo ? (
-                    <div className="relative w-full h-full group">
-                      <img
-                        src={formData.candidate.photo}
-                        alt="Candidate preview"
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
-                        <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
-                          Change
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            className="hidden"
-                            onChange={(e) => handlePhotoUpload('candidate', e)}
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => removePhoto('candidate')}
-                          className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded shadow hover:bg-red-700"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
-                      <div className="relative mb-2">
-                        <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
-                          <Camera className="w-5 h-5" />
+              {/* Right Columns: Candidate Photograph & Candidate Signature */}
+              <div className="lg:col-span-5 xl:col-span-4 grid grid-cols-2 gap-3 sm:gap-4 justify-items-center w-full">
+                {/* 1. Candidate Photograph */}
+                <div className="flex flex-col items-center justify-center w-full max-w-[160px]">
+                  <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2 text-center whitespace-nowrap">
+                    Photograph <span className="text-red-600 font-black">*</span>
+                  </label>
+                  <div
+                    className={`relative w-full h-40 sm:h-44 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
+                      fieldErrors['candidate.photo']
+                        ? 'border-red-500 bg-red-50/40'
+                        : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-red-400'
+                    }`}
+                  >
+                    {formData.candidate.photo ? (
+                      <div className="relative w-full h-full group">
+                        <img
+                          src={formData.candidate.photo}
+                          alt="Candidate preview"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2">
+                          <label className="cursor-pointer bg-white text-neutral-900 text-[11px] font-bold py-1 px-2.5 rounded shadow hover:bg-neutral-100">
+                            Change
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload('candidate', 'photo', e)}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => removeFile('candidate', 'photo')}
+                            className="bg-red-600 text-white text-[11px] font-bold py-1 px-2.5 rounded shadow hover:bg-red-700"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
-                          +
-                        </span>
                       </div>
-                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
-                      <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        onChange={(e) => handlePhotoUpload('candidate', e)}
-                      />
-                    </label>
+                    ) : (
+                      <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                        <div className="relative mb-1.5">
+                          <div className="w-9 h-9 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                            <Camera className="w-4 h-4" />
+                          </div>
+                          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-600 text-white flex items-center justify-center text-[9px] font-bold">
+                            +
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                        <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload('candidate', 'photo', e)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  {fieldErrors['candidate.photo'] && (
+                    <p className="text-xs text-red-600 font-semibold mt-1 text-center">
+                      {fieldErrors['candidate.photo']}
+                    </p>
                   )}
                 </div>
-                {fieldErrors['candidate.photo'] && (
-                  <p className="text-xs text-red-600 font-semibold mt-1 text-center">
-                    {fieldErrors['candidate.photo']}
-                  </p>
-                )}
+
+                {/* 2. Candidate Signature */}
+                <div className="flex flex-col items-center justify-center w-full max-w-[160px]">
+                  <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2 text-center whitespace-nowrap">
+                    Upload Signature <span className="text-red-600 font-black">*</span>
+                  </label>
+                  <div
+                    className={`relative w-full h-40 sm:h-44 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
+                      fieldErrors['candidate.signature']
+                        ? 'border-red-500 bg-red-50/40'
+                        : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-red-400'
+                    }`}
+                  >
+                    {formData.candidate.signature ? (
+                      <div className="relative w-full h-full group">
+                        <img
+                          src={formData.candidate.signature}
+                          alt="Candidate signature preview"
+                          className="w-full h-full object-contain bg-white rounded-lg p-1"
+                        />
+                        <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2">
+                          <label className="cursor-pointer bg-white text-neutral-900 text-[11px] font-bold py-1 px-2.5 rounded shadow hover:bg-neutral-100">
+                            Change
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload('candidate', 'signature', e)}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => removeFile('candidate', 'signature')}
+                            className="bg-red-600 text-white text-[11px] font-bold py-1 px-2.5 rounded shadow hover:bg-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                        <div className="relative mb-1.5">
+                          <div className="w-9 h-9 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                            <FileSignature className="w-4 h-4 text-neutral-600" />
+                          </div>
+                          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-[9px] font-bold">
+                            +
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-neutral-800">Upload Signature</span>
+                        <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload('candidate', 'signature', e)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  {fieldErrors['candidate.signature'] && (
+                    <p className="text-xs text-red-600 font-semibold mt-1 text-center">
+                      {fieldErrors['candidate.signature']}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1392,12 +1487,18 @@ export const ElectionNominationPage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Proposer Photograph Upload (Optional) */}
+              {/* Right Column: Proposer Photograph Upload */}
               <div className="flex flex-col items-center justify-center">
                 <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
-                  Photograph <span className="text-neutral-400 font-normal">(Optional)</span>
+                  Upload Signature <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 hover:bg-neutral-100 flex flex-col items-center justify-center p-2 text-center transition-all">
+                <div
+                  className={`relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
+                    fieldErrors['proposer.photo']
+                      ? 'border-red-500 bg-red-50/40'
+                      : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100'
+                  }`}
+                >
                   {formData.proposer.photo ? (
                     <div className="relative w-full h-full group">
                       <img
@@ -1434,7 +1535,7 @@ export const ElectionNominationPage = () => {
                           +
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                      <span className="text-xs font-bold text-neutral-800">Upload Signature</span>
                       <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
                       <input
                         type="file"
@@ -1445,6 +1546,11 @@ export const ElectionNominationPage = () => {
                     </label>
                   )}
                 </div>
+                {fieldErrors['proposer.photo'] && (
+                  <p className="text-xs text-red-600 font-semibold mt-1 text-center">
+                    {fieldErrors['proposer.photo']}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -1565,12 +1671,18 @@ export const ElectionNominationPage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Seconder Photograph Upload (Optional) */}
+              {/* Right Column: Seconder Photograph Upload */}
               <div className="flex flex-col items-center justify-center">
                 <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
-                  Photograph <span className="text-neutral-400 font-normal">(Optional)</span>
+                  Upload Signature <span className="text-red-600 font-black">*</span>
                 </label>
-                <div className="relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 hover:bg-neutral-100 flex flex-col items-center justify-center p-2 text-center transition-all">
+                <div
+                  className={`relative w-40 h-44 sm:w-44 sm:h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
+                    fieldErrors['seconder.photo']
+                      ? 'border-red-500 bg-red-50/40'
+                      : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100'
+                  }`}
+                >
                   {formData.seconder.photo ? (
                     <div className="relative w-full h-full group">
                       <img
@@ -1607,7 +1719,7 @@ export const ElectionNominationPage = () => {
                           +
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-neutral-800">Upload Photo</span>
+                      <span className="text-xs font-bold text-neutral-800">Upload Signature</span>
                       <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG</span>
                       <input
                         type="file"
@@ -1618,6 +1730,11 @@ export const ElectionNominationPage = () => {
                     </label>
                   )}
                 </div>
+                {fieldErrors['seconder.photo'] && (
+                  <p className="text-xs text-red-600 font-semibold mt-1 text-center">
+                    {fieldErrors['seconder.photo']}
+                  </p>
+                )}
               </div>
             </div>
           </div>
