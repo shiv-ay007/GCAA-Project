@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import apiRoutes from './Routes/index.js';
+import apiRoutes from './Routes/apiRoutes.js';
 import { seedDefaultAdmin } from './Controllers/adminAuthController.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -81,7 +81,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Consolidated API Routes from Routes/index.js
+// Consolidated API Routes from Routes/apiRoutes.js
 app.use('/api', apiRoutes);
 
 // Root route: Renders EJS status dashboard with safe JSON fallback

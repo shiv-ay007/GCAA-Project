@@ -17,13 +17,15 @@ import { Link } from 'react-router-dom';
 import { fetchBatchAlumniFromApi, fetchBatchAlumniStatsFromApi } from '../Api/batchAlumniApi';
 import buildingHeroImg from '../assets/images/GCAAA_college_building.jpg';
 
-// Helper: Extract numeric year
+// Helper: Extract numeric year or batch label
 const extractYear = (yearStr) => {
   if (!yearStr) return '';
   const str = yearStr.toString().trim();
+  if (/faculty/i.test(str)) return 'Faculty';
   const matches = str.match(/\d{4}/g);
-  if (matches && matches.length > 0) return matches[0];
-  return str;
+  if (matches && matches.length > 1) return str;
+  if (matches && matches.length === 1) return matches[0];
+  return str.replace(/prior\s*to\s*/gi, '').replace(/before\s*/gi, '').trim();
 };
 
 // Responsive columns hook — 1 (mobile), 2 (tablet + desktop)
@@ -55,11 +57,11 @@ export const AlumniDataListPage = () => {
       label: 'ALL (85-2025)',
       course: 'Bachelor of Architecture (1985 - 2025)',
     },
-    // {
-    //   id: 'm-arch-1985',
-    //   label: 'M.ARCH 1985',
-    //   course: 'Master of Architecture (1985)',
-    // },
+    {
+      id: 'b-arch',
+      label: 'B.ARCH',
+      course: 'Bachelor of Architecture',
+    },
     {
       id: 'm-arch',
       label: 'M.ARCH 15-21',
@@ -111,9 +113,7 @@ export const AlumniDataListPage = () => {
 
     const loadStats = async () => {
       try {
-        // For m-arch-1985, we rely on the 'm-arch' or 'all' stats
-        const statsCohort = activeTab === 'm-arch-1985' ? 'm-arch' : activeTab;
-        const res = await fetchBatchAlumniStatsFromApi({ cohort: statsCohort });
+        const res = await fetchBatchAlumniStatsFromApi({ cohort: activeTab });
         
         if (isMounted && res.success && res.stats) {
           const stats = res.stats;
@@ -144,6 +144,10 @@ export const AlumniDataListPage = () => {
 
           // Sort years chronologically
           batches.sort((a, b) => {
+            if (/prior|before/i.test(a)) return -1;
+            if (/prior|before/i.test(b)) return 1;
+            if (/faculty/i.test(a)) return -1;
+            if (/faculty/i.test(b)) return 1;
             const numA = parseInt(a, 10);
             const numB = parseInt(b, 10);
             if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
@@ -171,17 +175,13 @@ export const AlumniDataListPage = () => {
     const loadRecords = async () => {
       setLoading(true);
       try {
-        // If M.ARCH 1985 is clicked, we fetch from 'm-arch' or 'all' and filter manually.
-        const isManualFilter = activeTab === 'm-arch-1985';
-        const apiCohort = isManualFilter ? 'all' : activeTab; // Fetch all to find M.Arch 1985
-
         const params = {
-          cohort: apiCohort,
-          page: isManualFilter ? 1 : currentPage,
-          limit: isManualFilter ? 'ALL' : itemsPerPage, // Get all if filtering manually
+          cohort: activeTab,
+          page: currentPage,
+          limit: itemsPerPage,
         };
 
-        if (selectedYear !== 'ALL' && !isManualFilter) {
+        if (selectedYear !== 'ALL') {
           params.year = selectedYear;
         }
 
@@ -206,31 +206,9 @@ export const AlumniDataListPage = () => {
         const res = await fetchBatchAlumniFromApi(params);
         
         if (isMounted && res.success) {
-          let fetchedData = res.data || [];
-
-          // MANUAL FILTERING FOR M.ARCH 1985
-          if (isManualFilter) {
-            fetchedData = fetchedData.filter((alumnus) => {
-              const yearStr = extractYear(alumnus.year);
-              const is1985 = yearStr === '1985';
-              const isMArch = (alumnus.course || '').toLowerCase().includes('m.arch') || (alumnus.name || '').toLowerCase().includes('m.arch');
-              return is1985 && isMArch; 
-            });
-
-            // Manual Pagination
-            const totalManual = fetchedData.length;
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const paginatedData = fetchedData.slice(startIndex, startIndex + itemsPerPage);
-
-            setRecords(paginatedData);
-            setTotalItems(totalManual);
-            setTotalPages(Math.ceil(totalManual / itemsPerPage) || 1);
-          } else {
-            // Normal Server-Side Data
-            setRecords(fetchedData);
-            setTotalItems(res.total || 0);
-            setTotalPages(res.totalPages || 1);
-          }
+          setRecords(res.data || []);
+          setTotalItems(res.total || 0);
+          setTotalPages(res.totalPages || 1);
         }
       } catch (err) {
         console.error('Failed to fetch batch records from backend:', err);
@@ -294,28 +272,16 @@ export const AlumniDataListPage = () => {
   // Export to CSV directly
   const handleExportCSV = async () => {
     try {
-      const isManualFilter = activeTab === 'm-arch-1985';
-      const apiCohort = isManualFilter ? 'all' : activeTab;
-
       const params = {
-        cohort: apiCohort,
+        cohort: activeTab,
         limit: 'ALL',
       };
       
-      if (selectedYear !== 'ALL' && !isManualFilter) params.year = selectedYear;
+      if (selectedYear !== 'ALL') params.year = selectedYear;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await fetchBatchAlumniFromApi(params);
-      let dataToExport = res.success && Array.isArray(res.data) ? res.data : records;
-
-      if (isManualFilter) {
-        dataToExport = dataToExport.filter((alumnus) => {
-          const yearStr = extractYear(alumnus.year);
-          const is1985 = yearStr === '1985';
-          const isMArch = (alumnus.course || '').toLowerCase().includes('m.arch') || (alumnus.name || '').toLowerCase().includes('m.arch');
-          return is1985 && isMArch;
-        });
-      }
+      const dataToExport = res.success && Array.isArray(res.data) ? res.data : records;
 
       if (!dataToExport.length) return;
       const headers = ['Sr No.', 'Membership No.', 'Year', 'Name', 'Status', 'Email', 'Mobile'];
@@ -456,10 +422,7 @@ export const AlumniDataListPage = () => {
             {cohortTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               
-              // Custom logic for count badge (hide '...' for m-arch-1985 if 0)
-              let count = cohortCounts[tab.id];
-              if (tab.id === 'm-arch-1985') count = totalItems;
-              else if (tab.id === activeTab) count = totalCohortCount;
+              const count = tab.id === activeTab ? totalCohortCount : cohortCounts[tab.id];
 
               return (
                 <button
@@ -483,7 +446,7 @@ export const AlumniDataListPage = () => {
                       isActive ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'
                     }`}
                   >
-                    {count > 0 ? count : '...'}
+                    {count !== undefined && count !== null ? count : '...'}
                   </span>
                 </button>
               );
@@ -595,7 +558,7 @@ export const AlumniDataListPage = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-neutral-500 font-semibold">Active:</span>
                 <span className="px-2.5 py-0.5 rounded-md bg-neutral-900 text-white font-bold text-[11px]">
-                  {selectedYear === 'ALL' ? 'All Batches' : `${extractYear(selectedYear)} (${selectedYear})`}
+                  {selectedYear === 'ALL' ? 'All Batches' : (extractYear(selectedYear) || selectedYear)}
                 </span>
                 {searchQuery && (
                   <span className="px-2.5 py-0.5 rounded-md bg-red-100 text-red-800 font-bold text-[11px]">

@@ -5,17 +5,17 @@ import batchAlumniRoutes from './batchAlumniRoutes.js';
 import electionNominationRoutes from './electionNominationRoutes.js';
 import blogRoutes from './blogRoutes.js';
 
-const router = express.Router();
+const apiRoutes = express.Router();
 
 // Mount all modular API sub-routes
-router.use('/admin/auth', adminAuthRoutes);
-router.use('/registered-members', registeredMemberRoutes);
-router.use('/batch-alumni', batchAlumniRoutes);
-router.use('/election-nominations', electionNominationRoutes);
-router.use('/blogs', blogRoutes);
+apiRoutes.use('/admin/auth', adminAuthRoutes);
+apiRoutes.use('/registered-members', registeredMemberRoutes);
+apiRoutes.use('/batch-alumni', batchAlumniRoutes);
+apiRoutes.use('/election-nominations', electionNominationRoutes);
+apiRoutes.use('/blogs', blogRoutes);
 
 // Health check endpoint under /api/health
-router.get('/health', (req, res) => {
+apiRoutes.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
     status: 'Healthy',
@@ -24,4 +24,5 @@ router.get('/health', (req, res) => {
   });
 });
 
-export default router;
+export { apiRoutes };
+export default apiRoutes;

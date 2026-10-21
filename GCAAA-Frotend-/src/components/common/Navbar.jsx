@@ -340,14 +340,14 @@ export const Navbar = () => {
                     >
                       Life Membership Registration
                     </Link>
-                    {/* <Link
+                    <Link
                       to="/election-nomination"
                       onClick={closeAllMenus}
                       className="block px-4 py-2 hover:bg-red-600 text-xs text-amber-300 font-bold flex items-center justify-between"
                     >
                       <span>Election Nomination 2026</span>
                       <span className="text-[9px] bg-red-800 text-white font-extrabold px-1.5 py-0.5 rounded">NEW</span>
-                    </Link> */}
+                    </Link>
                     <Link
                       to="/alumni-data-list"
                       onClick={closeAllMenus}
@@ -610,7 +610,7 @@ export const Navbar = () => {
                     </span>
                   </Link>
 
-                  {/* <Link
+                  <Link
                     to="/election-nomination"
                     onClick={closeAllMenus}
                     className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors ${
@@ -626,7 +626,7 @@ export const Navbar = () => {
                     <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
                       New
                     </span>
-                  </Link> */}
+                  </Link>
                   
                   <Link
                     to="/alumni-data-list"

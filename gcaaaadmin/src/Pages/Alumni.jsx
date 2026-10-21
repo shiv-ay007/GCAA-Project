@@ -24,12 +24,17 @@ import {
   fetchBatchAlumnusById,
 } from '../Api/batchAlumniApi'
 
-// 5 Official GCAAA Cohorts matching the public directory
+// Official GCAAA Cohorts matching the public directory
 const cohortTabs = [
   {
     id: 'all',
     label: 'ALL (B.Arch & Foundation)',
     course: 'Bachelor of Architecture & Foundation (Prior to 1985 - 2026)',
+  },
+  {
+    id: 'b-arch',
+    label: 'B.Arch',
+    course: 'Bachelor of Architecture',
   },
   {
     id: 'm-arch',

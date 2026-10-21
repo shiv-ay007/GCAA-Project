@@ -29,7 +29,7 @@ const batchAlumniSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: 'all',
-      enum: ['all', 'm-arch', 'murp', 'miend', 'mind'],
+      enum: ['all', 'b-arch', 'b1985', 'm-arch', 'murp', 'miend', 'mind'],
       index: true,
     },
     course: {
