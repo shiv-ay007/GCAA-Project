@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Search,
-  Users,
   GraduationCap,
   Calendar,
   RefreshCw,
@@ -10,7 +9,9 @@ import {
   Download,
   AlertCircle,
   HeartHandshake,
-  Loader2
+  Loader2,
+  SlidersHorizontal,
+  X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchBatchAlumniFromApi, fetchBatchAlumniStatsFromApi } from '../Api/batchAlumniApi';
@@ -54,6 +55,11 @@ export const AlumniDataListPage = () => {
       label: 'ALL (85-2025)',
       course: 'Bachelor of Architecture (1985 - 2025)',
     },
+    // {
+    //   id: 'm-arch-1985',
+    //   label: 'M.ARCH 1985',
+    //   course: 'Master of Architecture (1985)',
+    // },
     {
       id: 'm-arch',
       label: 'M.ARCH 15-21',
@@ -84,6 +90,9 @@ export const AlumniDataListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
 
+  // Filter panel visibility (closed by default)
+  const [showFilters, setShowFilters] = useState(false);
+
   // Server-side paginated data state
   const [records, setRecords] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -102,7 +111,10 @@ export const AlumniDataListPage = () => {
 
     const loadStats = async () => {
       try {
-        const res = await fetchBatchAlumniStatsFromApi({ cohort: activeTab });
+        // For m-arch-1985, we rely on the 'm-arch' or 'all' stats
+        const statsCohort = activeTab === 'm-arch-1985' ? 'm-arch' : activeTab;
+        const res = await fetchBatchAlumniStatsFromApi({ cohort: statsCohort });
+        
         if (isMounted && res.success && res.stats) {
           const stats = res.stats;
 
@@ -113,6 +125,7 @@ export const AlumniDataListPage = () => {
               counts[c._id] = c.count;
             });
           }
+          
           setCohortCounts(counts);
           setTotalCohortCount(stats.total || 0);
 
@@ -151,20 +164,24 @@ export const AlumniDataListPage = () => {
     };
   }, [activeTab]);
 
-  // 2. Fetch server-side paginated records (limit: 50) from Backend API
+  // 2. Fetch server-side paginated records from Backend API
   useEffect(() => {
     let isMounted = true;
 
     const loadRecords = async () => {
       setLoading(true);
       try {
+        // If M.ARCH 1985 is clicked, we fetch from 'm-arch' or 'all' and filter manually.
+        const isManualFilter = activeTab === 'm-arch-1985';
+        const apiCohort = isManualFilter ? 'all' : activeTab; // Fetch all to find M.Arch 1985
+
         const params = {
-          cohort: activeTab,
-          page: currentPage,
-          limit: itemsPerPage,
+          cohort: apiCohort,
+          page: isManualFilter ? 1 : currentPage,
+          limit: isManualFilter ? 'ALL' : itemsPerPage, // Get all if filtering manually
         };
 
-        if (selectedYear !== 'ALL') {
+        if (selectedYear !== 'ALL' && !isManualFilter) {
           params.year = selectedYear;
         }
 
@@ -187,10 +204,33 @@ export const AlumniDataListPage = () => {
         }
 
         const res = await fetchBatchAlumniFromApi(params);
+        
         if (isMounted && res.success) {
-          setRecords(res.data || []);
-          setTotalItems(res.total || 0);
-          setTotalPages(res.totalPages || 1);
+          let fetchedData = res.data || [];
+
+          // MANUAL FILTERING FOR M.ARCH 1985
+          if (isManualFilter) {
+            fetchedData = fetchedData.filter((alumnus) => {
+              const yearStr = extractYear(alumnus.year);
+              const is1985 = yearStr === '1985';
+              const isMArch = (alumnus.course || '').toLowerCase().includes('m.arch') || (alumnus.name || '').toLowerCase().includes('m.arch');
+              return is1985 && isMArch; 
+            });
+
+            // Manual Pagination
+            const totalManual = fetchedData.length;
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const paginatedData = fetchedData.slice(startIndex, startIndex + itemsPerPage);
+
+            setRecords(paginatedData);
+            setTotalItems(totalManual);
+            setTotalPages(Math.ceil(totalManual / itemsPerPage) || 1);
+          } else {
+            // Normal Server-Side Data
+            setRecords(fetchedData);
+            setTotalItems(res.total || 0);
+            setTotalPages(res.totalPages || 1);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch batch records from backend:', err);
@@ -216,7 +256,7 @@ export const AlumniDataListPage = () => {
 
   const currentCohort = cohortTabs.find((t) => t.id === activeTab) || cohortTabs[0];
 
-  // Distribute the 50 fetched records across responsive columns (2 tables on desktop)
+  // Distribute the fetched records across responsive columns (2 tables on desktop)
   const columnsData = useMemo(() => {
     const numCols = responsiveCols;
     const total = records.length;
@@ -254,15 +294,28 @@ export const AlumniDataListPage = () => {
   // Export to CSV directly
   const handleExportCSV = async () => {
     try {
+      const isManualFilter = activeTab === 'm-arch-1985';
+      const apiCohort = isManualFilter ? 'all' : activeTab;
+
       const params = {
-        cohort: activeTab,
+        cohort: apiCohort,
         limit: 'ALL',
       };
-      if (selectedYear !== 'ALL') params.year = selectedYear;
+      
+      if (selectedYear !== 'ALL' && !isManualFilter) params.year = selectedYear;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await fetchBatchAlumniFromApi(params);
-      const dataToExport = res.success && Array.isArray(res.data) ? res.data : records;
+      let dataToExport = res.success && Array.isArray(res.data) ? res.data : records;
+
+      if (isManualFilter) {
+        dataToExport = dataToExport.filter((alumnus) => {
+          const yearStr = extractYear(alumnus.year);
+          const is1985 = yearStr === '1985';
+          const isMArch = (alumnus.course || '').toLowerCase().includes('m.arch') || (alumnus.name || '').toLowerCase().includes('m.arch');
+          return is1985 && isMArch;
+        });
+      }
 
       if (!dataToExport.length) return;
       const headers = ['Sr No.', 'Membership No.', 'Year', 'Name', 'Status', 'Email', 'Mobile'];
@@ -288,7 +341,7 @@ export const AlumniDataListPage = () => {
     }
   };
 
-  // Helper to check if record is deceased (Strictly font-strikethrough in Excel)
+  // Helper to check if record is deceased
   const isDeceasedRecord = (alumnus) => {
     return Boolean(alumnus.deceased) || alumnus.name?.toLowerCase().startsWith('late ');
   };
@@ -298,23 +351,83 @@ export const AlumniDataListPage = () => {
     fontVariantNumeric: 'lining-nums tabular-nums',
   };
 
+  // Shared pagination renderer
+  const renderPagination = () => (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="flex items-center gap-2 flex-wrap justify-center text-xs text-neutral-600">
+        <span>Show per page:</span>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          style={numFont}
+          className="border border-neutral-300 rounded px-2 py-1 bg-white font-semibold text-neutral-800 cursor-pointer"
+        >
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+          <option value={200}>200</option>
+        </select>
+        <span className="text-neutral-400">|</span>
+        <span style={numFont}>
+          Showing {totalItems > 0 ? Math.min((currentPage - 1) * itemsPerPage + 1, totalItems) : 0} to{' '}
+          {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} alumni
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-1">
+        <button
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
+        >
+          Prev
+        </button>
+        {paginationRange.map((p, idx) => {
+          if (p === '...') {
+            return (
+              <span key={`ellipsis-${idx}`} className="px-1.5 text-neutral-400 text-xs">
+                ...
+              </span>
+            );
+          }
+          return (
+            <button
+              key={p}
+              onClick={() => setCurrentPage(p)}
+              className={`w-7 h-7 rounded text-xs font-bold transition-colors cursor-pointer ${
+                currentPage === p
+                  ? 'bg-[#B70D2B] text-white'
+                  : 'border border-neutral-300 hover:bg-neutral-100 text-neutral-700'
+              }`}
+            >
+              {p}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+          className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full bg-white text-neutral-900 min-h-screen pb-20 font-sans">
-      {/* ========================================================
-          1. SLEEK MINIMAL HERO BANNER WITH CAMPUS ARCHITECTURE IMAGE
-      ======================================================== */}
+      {/* Hero Banner */}
       <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-200">
-        {/* Background Campus Image */}
         <img
           src={buildingHeroImg}
           alt="Government College of Architecture Campus"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-
-        {/* Subtle Dark Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/75 to-black/85" />
-
-        {/* Content: Title & Breadcrumb Only (Minimal) */}
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold backdrop-blur-sm mb-3">
             <GraduationCap className="w-3.5 h-3.5 text-red-400" />
@@ -322,11 +435,9 @@ export const AlumniDataListPage = () => {
             <span className="text-white/40">•</span>
             <span className="text-red-300">Official Archives</span>
           </div>
-
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
             All Batches of GCAAA
           </h1>
-
           <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest text-neutral-300 mt-2.5 font-semibold">
             <Link to="/" className="hover:text-red-400 transition-colors">
               HOME
@@ -337,16 +448,18 @@ export const AlumniDataListPage = () => {
         </div>
       </section>
 
-      {/* ========================================================
-          2. MAIN CONTENT (Pure White Background)
-      ======================================================== */}
+      {/* Main Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-12 lg:px-14 pt-6 sm:pt-8">
-        {/* Cohort Tabs Bar with Export CSV */}
+        {/* Tabs Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-neutral-200">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {cohortTabs.map((tab) => {
               const isActive = activeTab === tab.id;
-              const count = cohortCounts[tab.id] ?? (tab.id === activeTab ? totalCohortCount : 0);
+              
+              // Custom logic for count badge (hide '...' for m-arch-1985 if 0)
+              let count = cohortCounts[tab.id];
+              if (tab.id === 'm-arch-1985') count = totalItems;
+              else if (tab.id === activeTab) count = totalCohortCount;
 
               return (
                 <button
@@ -377,181 +490,128 @@ export const AlumniDataListPage = () => {
             })}
           </div>
 
-          <button
-            onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-sm active:scale-95 shrink-0 self-start sm:self-auto"
-          >
-            <Download className="w-4 h-4 text-red-400" />
-            <span>Export CSV</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className={`inline-flex items-center justify-center p-2.5 rounded-lg transition-all cursor-pointer shadow-sm active:scale-95 border ${
+                showFilters
+                  ? 'bg-[#B70D2B] text-white border-[#B70D2B]'
+                  : 'bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-100'
+              }`}
+              title={showFilters ? 'Hide filters' : 'Show filters'}
+            >
+              {showFilters ? <X className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={handleExportCSV}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+            >
+              <Download className="w-4 h-4 text-red-400" />
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
-        {/* Filters Card */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-5 shadow-xs mb-6">
-          {/* Filter Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
-            <div className="sm:col-span-2 lg:col-span-5 relative">
-              <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={numFont}
-                placeholder="Search alumni name, year, or membership..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm focus:outline-none focus:border-[#B70D2B] focus:ring-1 focus:ring-[#B70D2B] bg-white"
-              />
-            </div>
-
-            <div className="sm:col-span-1 lg:col-span-3">
-              <div className="relative">
-                <Calendar className="w-4 h-4 text-[#B70D2B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  value={selectedYear}
+        {/* Collapsible Filters Card */}
+        {showFilters && (
+          <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-5 shadow-xs mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+              <div className="sm:col-span-2 lg:col-span-5 relative">
+                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
                   onChange={(e) => {
-                    setSelectedYear(e.target.value);
+                    setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
                   style={numFont}
-                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-[#B70D2B] bg-white appearance-none cursor-pointer"
-                >
-                  <option value="ALL">All Batches ({totalCohortCount} records)</option>
-                  {activeBatches.map((yr) => (
-                    <option key={yr} value={yr}>
-                      {extractYear(yr)} ({yr}) — {batchStats[yr] || 0} alumni
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  placeholder="Search alumni name, year, or membership..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm focus:outline-none focus:border-[#B70D2B] focus:ring-1 focus:ring-[#B70D2B] bg-white"
+                />
               </div>
-            </div>
 
-            <div className="sm:col-span-1 lg:col-span-3">
-              <div className="relative">
-                <ArrowUpDown className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
+              <div className="sm:col-span-1 lg:col-span-3">
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-[#B70D2B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => {
+                      setSelectedYear(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    style={numFont}
+                    className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-[#B70D2B] bg-white appearance-none cursor-pointer"
+                  >
+                    <option value="ALL">All Batches ({totalCohortCount} records)</option>
+                    {activeBatches.map((yr) => (
+                      <option key={yr} value={yr}>
+                        {extractYear(yr)} ({yr}) — {batchStats[yr] || 0} alumni
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="sm:col-span-1 lg:col-span-3">
+                <div className="relative">
+                  <ArrowUpDown className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-[#B70D2B] bg-white appearance-none cursor-pointer"
+                  >
+                    <option value="year-asc">Sort: Serial No (1 → End)</option>
+                    <option value="year-desc">Sort: Serial No (End → 1)</option>
+                    <option value="name-asc">Sort: Name (A → Z)</option>
+                    <option value="name-desc">Sort: Name (Z → A)</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-1 flex items-center justify-end">
+                <button
+                  onClick={() => {
+                    setSelectedYear('ALL');
+                    setSearchQuery('');
+                    setSortBy('year-asc');
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:border-[#B70D2B] bg-white appearance-none cursor-pointer"
+                  title="Reset all filters"
+                  className="w-full lg:w-auto p-2.5 rounded-lg border border-neutral-300 hover:bg-neutral-100 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
                 >
-                  <option value="year-asc">Sort: Serial No (1 → End)</option>
-                  <option value="year-desc">Sort: Serial No (End → 1)</option>
-                  <option value="name-asc">Sort: Name (A → Z)</option>
-                  <option value="name-desc">Sort: Name (Z → A)</option>
-                </select>
-                <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="sm:col-span-2 lg:col-span-1 flex items-center justify-end">
-              <button
-                onClick={() => {
-                  setSelectedYear('ALL');
-                  setSearchQuery('');
-                  setSortBy('year-asc');
-                  setCurrentPage(1);
-                }}
-                title="Reset all filters"
-                className="w-full lg:w-auto p-2.5 rounded-lg border border-neutral-300 hover:bg-neutral-100 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#B70D2B]' : ''}`} />
-              </button>
-            </div>
-          </div>
-
-          {/* Filter tags & Counter */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-3 border-t border-neutral-100 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-neutral-500 font-semibold">Active:</span>
-              <span className="px-2.5 py-0.5 rounded-md bg-neutral-900 text-white font-bold text-[11px]">
-                {selectedYear === 'ALL' ? 'All Batches' : `${extractYear(selectedYear)} (${selectedYear})`}
-              </span>
-              {searchQuery && (
-                <span className="px-2.5 py-0.5 rounded-md bg-red-100 text-red-800 font-bold text-[11px]">
-                  &quot;{searchQuery}&quot;
-                </span>
-              )}
-            </div>
-            <div className="text-neutral-500 font-medium text-xs">
-              Showing <strong className="text-neutral-900 font-bold">{records.length}</strong> of{' '}
-              <strong className="text-neutral-900 font-bold">{totalItems}</strong> alumni
-            </div>
-          </div>
-
-          {/* Top Pagination Bar */}
-          {totalItems > 0 && totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 mt-3 border-t border-neutral-100">
-              <div className="flex items-center gap-2 flex-wrap justify-center text-xs text-neutral-600">
-                <span>Show per page:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  style={numFont}
-                  className="border border-neutral-300 rounded px-2 py-1 bg-white font-semibold text-neutral-800 cursor-pointer"
-                >
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
-                <span className="text-neutral-400">|</span>
-                <span style={numFont}>
-                  Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} to{' '}
-                  {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} alumni
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-1">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
-                >
-                  Prev
-                </button>
-                {paginationRange.map((p, idx) => {
-                  if (p === '...') {
-                    return (
-                      <span key={`ellipsis-${idx}`} className="px-1.5 text-neutral-400 text-xs">
-                        ...
-                      </span>
-                    );
-                  }
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`w-7 h-7 rounded text-xs font-bold transition-colors cursor-pointer ${
-                        currentPage === p
-                          ? 'bg-[#B70D2B] text-white'
-                          : 'border border-neutral-300 hover:bg-neutral-100 text-neutral-700'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-2.5 py-1 border border-neutral-300 rounded hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs cursor-pointer"
-                >
-                  Next
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#B70D2B]' : ''}`} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* 3. Alumni Data Tables (Responsive 2 Columns with Clean Gap) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-3 border-t border-neutral-100 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-neutral-500 font-semibold">Active:</span>
+                <span className="px-2.5 py-0.5 rounded-md bg-neutral-900 text-white font-bold text-[11px]">
+                  {selectedYear === 'ALL' ? 'All Batches' : `${extractYear(selectedYear)} (${selectedYear})`}
+                </span>
+                {searchQuery && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-red-100 text-red-800 font-bold text-[11px]">
+                    &quot;{searchQuery}&quot;
+                  </span>
+                )}
+              </div>
+              <div className="text-neutral-500 font-medium text-xs">
+                Showing <strong className="text-neutral-900 font-bold">{records.length}</strong> of{' '}
+                <strong className="text-neutral-900 font-bold">{totalItems}</strong> alumni
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Data Tables */}
         <div className="space-y-4">
           {loading ? (
             <div className="bg-white rounded-xl border border-neutral-200 py-16 text-center text-neutral-500 shadow-xs">
@@ -662,6 +722,13 @@ export const AlumniDataListPage = () => {
               <p className="text-xs text-neutral-400 mt-1">
                 Try changing the batch year filter or clear the search box.
               </p>
+            </div>
+          )}
+
+          {/* Bottom Pagination Bar */}
+          {totalItems > 0 && totalPages > 1 && (
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-5 shadow-xs">
+              {renderPagination()}
             </div>
           )}
 
