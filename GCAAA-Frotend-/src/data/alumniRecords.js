@@ -2,7 +2,7 @@ export const alumniRecords = [
   {
     "sno": 1,
     "membershipNo": "D01001",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Akhil Saxena",
     "reg": "PAID",
     "email": "",
@@ -11,7 +11,7 @@ export const alumniRecords = [
   {
     "sno": 2,
     "membershipNo": "D01002",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Abhay Srivastava",
     "reg": "PAID",
     "email": "abhay@designnet.in archabhay@gmail.com",
@@ -20,7 +20,7 @@ export const alumniRecords = [
   {
     "sno": 3,
     "membershipNo": "D01003",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Ashok Kumar Nawani",
     "reg": "PAID",
     "email": "anawani30@yahoo.com",
@@ -29,7 +29,7 @@ export const alumniRecords = [
   {
     "sno": 4,
     "membershipNo": "D01004",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Ashok Misra",
     "reg": "PAID",
     "email": "",
@@ -38,7 +38,7 @@ export const alumniRecords = [
   {
     "sno": 5,
     "membershipNo": "D01005",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Anand Agarwal",
     "reg": "PAID",
     "email": "anand.adharshila@gmail.com",
@@ -47,7 +47,7 @@ export const alumniRecords = [
   {
     "sno": 6,
     "membershipNo": "D01006",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Chaitanya Tiwari",
     "reg": "PAID",
     "email": "chaitanya_tiwari@yahoo.in",
@@ -56,7 +56,7 @@ export const alumniRecords = [
   {
     "sno": 7,
     "membershipNo": "D01007",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Hemant Raja",
     "reg": "PAID",
     "email": "roopswaroopasso@yahoo.com",
@@ -65,7 +65,7 @@ export const alumniRecords = [
   {
     "sno": 8,
     "membershipNo": "D01009",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Promod Saxena",
     "reg": "PAID",
     "email": "promod.saxena21@gmail.com",
@@ -74,7 +74,7 @@ export const alumniRecords = [
   {
     "sno": 9,
     "membershipNo": "D01010",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Mrs. Ranjoo Kumar",
     "reg": "PAID",
     "email": "ranjoo.kumar@yahoo.com",
@@ -83,7 +83,7 @@ export const alumniRecords = [
   {
     "sno": 10,
     "membershipNo": "D01011",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "R.S. Kediya",
     "reg": "PAID",
     "email": "rskediyya@gmail.com",
@@ -92,7 +92,7 @@ export const alumniRecords = [
   {
     "sno": 11,
     "membershipNo": "D01012",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Late Satish Kumar",
     "reg": "In Memoriam",
     "email": "k.satish.1302@gmail.com",
@@ -101,7 +101,7 @@ export const alumniRecords = [
   {
     "sno": 12,
     "membershipNo": "D01013",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Sheel Khare",
     "reg": "PAID",
     "email": "khare.sheel@gmail.com",
@@ -110,7 +110,7 @@ export const alumniRecords = [
   {
     "sno": 13,
     "membershipNo": "D01014",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Syed Hidayat Naqvi",
     "reg": "PAID",
     "email": "profnaqvi42@gmail.com",
@@ -119,7 +119,7 @@ export const alumniRecords = [
   {
     "sno": 14,
     "membershipNo": "D01015",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Subhodh Kumar",
     "reg": "PAID",
     "email": "ksubodh646@gmail.com",
@@ -128,7 +128,7 @@ export const alumniRecords = [
   {
     "sno": 15,
     "membershipNo": "D01016",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Virendra Singh",
     "reg": "PAID",
     "email": "",
@@ -137,7 +137,7 @@ export const alumniRecords = [
   {
     "sno": 16,
     "membershipNo": "D01017",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Vinod Kr. Saxena",
     "reg": "PAID",
     "email": "vks_atp@rediffmail.com",
@@ -146,7 +146,7 @@ export const alumniRecords = [
   {
     "sno": 17,
     "membershipNo": "D02001",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Anjani Kumar Singh",
     "reg": "PAID",
     "email": "anjanisinghgca@gmail.com",
@@ -155,7 +155,7 @@ export const alumniRecords = [
   {
     "sno": 18,
     "membershipNo": "D02002",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Amit Srivastava",
     "reg": "PAID",
     "email": "",
@@ -164,7 +164,7 @@ export const alumniRecords = [
   {
     "sno": 19,
     "membershipNo": "D02003",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Late Ashok Kovid",
     "reg": "In Memoriam",
     "email": "",
@@ -173,7 +173,7 @@ export const alumniRecords = [
   {
     "sno": 20,
     "membershipNo": "D02004",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Jayram",
     "reg": "PAID",
     "email": "jayram71970@gmail.com",
@@ -182,7 +182,7 @@ export const alumniRecords = [
   {
     "sno": 21,
     "membershipNo": "D02005",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Kamta Prasad Gupra",
     "reg": "PAID",
     "email": "",
@@ -191,7 +191,7 @@ export const alumniRecords = [
   {
     "sno": 22,
     "membershipNo": "D02006",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Pawan Mishra",
     "reg": "PAID",
     "email": "arpawanmishra@gmail.com",
@@ -200,7 +200,7 @@ export const alumniRecords = [
   {
     "sno": 23,
     "membershipNo": "D02007",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Shiv Bodh Singh",
     "reg": "PAID",
     "email": "shivbodhs@gmail.com",
@@ -209,7 +209,7 @@ export const alumniRecords = [
   {
     "sno": 24,
     "membershipNo": "D03001",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Anil Singh Rawat",
     "reg": "PAID",
     "email": "",
@@ -218,7 +218,7 @@ export const alumniRecords = [
   {
     "sno": 25,
     "membershipNo": "D03002",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Late Anjani Kumar Srivastva",
     "reg": "In Memoriam",
     "email": "",
@@ -227,7 +227,7 @@ export const alumniRecords = [
   {
     "sno": 26,
     "membershipNo": "D03003",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Anuj Tandon",
     "reg": "PAID",
     "email": "anujtandon.2008@gmail.com",
@@ -236,7 +236,7 @@ export const alumniRecords = [
   {
     "sno": 27,
     "membershipNo": "D03004",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Gopal Tripathi",
     "reg": "PAID",
     "email": "gopal.tripathi2006@gmail.com",
@@ -245,7 +245,7 @@ export const alumniRecords = [
   {
     "sno": 28,
     "membershipNo": "D03005",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Harish Singhal",
     "reg": "PAID",
     "email": "harishsinghal22@yahoo.com",
@@ -254,7 +254,7 @@ export const alumniRecords = [
   {
     "sno": 29,
     "membershipNo": "D03006",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Pankaj Gandhi",
     "reg": "PAID",
     "email": "archpankajgandhi@gmail.com",
@@ -263,7 +263,7 @@ export const alumniRecords = [
   {
     "sno": 30,
     "membershipNo": "D03007",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Praveen Mishra",
     "reg": "PAID",
     "email": "vastuvidknp@gmail.com",
@@ -272,7 +272,7 @@ export const alumniRecords = [
   {
     "sno": 31,
     "membershipNo": "D03008",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Prem Verma",
     "reg": "PAID",
     "email": "",
@@ -281,7 +281,7 @@ export const alumniRecords = [
   {
     "sno": 32,
     "membershipNo": "D03009",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Rajeev Nayan Srivastava",
     "reg": "PAID",
     "email": "rajivn.srivastava@sahara.in",
@@ -290,7 +290,7 @@ export const alumniRecords = [
   {
     "sno": 33,
     "membershipNo": "D03010",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Sandeep Pandey",
     "reg": "PAID",
     "email": "architectsandeeplko@gmail.com",
@@ -299,7 +299,7 @@ export const alumniRecords = [
   {
     "sno": 34,
     "membershipNo": "D03011",
-    "year": "Prior to 1985",
+    "year": "1985",
     "name": "Umesh Chandra Mishra",
     "reg": "PAID",
     "email": "mishraumesh1973@gmail.com",

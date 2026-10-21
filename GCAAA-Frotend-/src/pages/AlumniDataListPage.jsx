@@ -20,10 +20,9 @@ import { fetchBatchAlumniFromApi } from '../Api/batchAlumniApi';
 const extractYear = (yearStr) => {
   if (!yearStr) return '';
   const str = yearStr.toString().trim();
-  if (str.toLowerCase().includes('prior')) return 'Prior to 1985';
   const matches = str.match(/\d{4}/g);
-  if (!matches || matches.length === 0) return str;
-  return matches[0];
+  if (matches && matches.length > 0) return matches[0];
+  return str;
 };
 
 // ✅ Responsive columns hook — 1 (mobile), 2 (tablet + desktop)
