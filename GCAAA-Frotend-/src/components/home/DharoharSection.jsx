@@ -4,7 +4,6 @@ import {
   MapPin,
   Users,
   ArrowRight,
-  Sparkles,
   Download,
 } from "lucide-react";
 import dharoharImg from "@/assets/images/dharohar_2026_campus.jpg";
@@ -13,13 +12,13 @@ export const DharoharSection = () => {
   return (
     <section
       id="dharohar"
-      className="bg-white text-neutral-900 py-12 sm:py-16 lg:py-22 border-b border-neutral-200"
+      className="bg-white text-neutral-900 py-10 sm:py-14 lg:py-18 border-b border-neutral-200"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-14">
         {/* ========================================================
             1. MAIN SECTION HEADING AT THE TOP
         ======================================================== */}
-        <div className="mb-8 sm:mb-12 max-w-4xl">
+        <div className="mb-6 sm:mb-10 max-w-4xl">
           <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.18em] text-[#B70D2B] mb-1.5 sm:mb-2">
             GCA Alumni Meet · DHAROHAR · 2026
           </p>
@@ -31,17 +30,18 @@ export const DharoharSection = () => {
             </span>
           </h2>
 
-          <div className="mt-2.5 sm:mt-3.5 h-1 w-16 bg-[#B70D2B]" />
+          <div className="mt-2.5 sm:mt-3 h-1 w-16 bg-[#B70D2B]" />
         </div>
 
         {/* ========================================================
             2. BALANCED TWO-COLUMN LAYOUT (EQUAL HEIGHT ALIGNMENT)
         ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-stretch">
-          {/* LEFT COLUMN: DHAROHAR PHOTO + SHIFTED EVENT HIGHLIGHTS & CTA */}
-          <div className="lg:col-span-6 flex flex-col justify-between gap-4">
-            <div className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-hidden border border-neutral-200 shadow-lg rounded-lg bg-neutral-100 min-h-[260px] sm:min-h-[340px] lg:min-h-[360px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-stretch">
+          {/* LEFT COLUMN: PHOTO + EVENT HIGHLIGHTS & 1-ROW ACTION BUTTONS */}
+          <div className="lg:col-span-6 flex flex-col justify-between h-full gap-4">
+            {/* Image Box */}
+            <div className="flex flex-col">
+              <div className="overflow-hidden border border-neutral-200 shadow-md rounded-xl bg-neutral-100 h-[240px] sm:h-[280px] lg:h-[300px]">
                 <img
                   src={dharoharImg}
                   alt="GCA Alumni Meet DHAROHAR 2026"
@@ -56,9 +56,9 @@ export const DharoharSection = () => {
               </div>
             </div>
 
-            {/* Shifted below image to keep both columns visually balanced */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-              <div className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-700 bg-white p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
+            {/* Event Highlights 3-Card Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 bg-neutral-50 p-3 sm:p-3.5 rounded-xl border border-neutral-200">
+              <div className="flex items-start gap-2.5 text-xs text-neutral-700 bg-white p-2.5 sm:p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
                 <Calendar className="w-4 h-4 text-[#B70D2B] shrink-0 mt-0.5" />
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
@@ -70,7 +70,7 @@ export const DharoharSection = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-700 bg-white p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
+              <div className="flex items-start gap-2.5 text-xs text-neutral-700 bg-white p-2.5 sm:p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
                 <MapPin className="w-4 h-4 text-[#B70D2B] shrink-0 mt-0.5" />
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
@@ -82,7 +82,7 @@ export const DharoharSection = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-700 bg-white p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
+              <div className="flex items-start gap-2.5 text-xs text-neutral-700 bg-white p-2.5 sm:p-3 rounded-lg border border-neutral-200/80 shadow-2xs">
                 <Users className="w-4 h-4 text-[#B70D2B] shrink-0 mt-0.5" />
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
@@ -95,41 +95,42 @@ export const DharoharSection = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-1">
+            {/* Action Buttons: Exact 1-line Grid on desktop and tablet */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 pt-1">
               <Link
                 to="/registration"
-                className="w-full sm:w-auto text-center justify-center bg-[#B70D2B] hover:bg-neutral-900 text-white font-bold text-xs uppercase tracking-wider px-5 py-3.5 rounded-lg shadow transition-all active:scale-95 flex items-center gap-2"
+                className="w-full text-center justify-center bg-[#B70D2B] hover:bg-neutral-900 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider px-2 sm:px-3 py-3 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
               >
-                <span>Alumni Registration</span>  
-                <ArrowRight className="w-4 h-4" />
+                <span>Alumni Registration</span>
+                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
+
               <Link
                 to="/events"
-                className="w-full sm:w-auto text-center justify-center border border-neutral-300 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white text-neutral-800 font-bold text-xs uppercase tracking-wider px-5 py-3.5 rounded-lg transition-all"
+                className="w-full text-center justify-center border border-neutral-300 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white text-neutral-800 font-bold text-[11px] sm:text-xs uppercase tracking-wider px-2 sm:px-3 py-3 rounded-lg transition-all flex items-center whitespace-nowrap"
               >
                 Explore Event
               </Link>
+
               <a
                 href="/dharohar-2026-brochure.pdf"
                 download="GCAAA-Dharohar-2026-Brochure.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto text-center justify-center bg-neutral-900 hover:bg-[#B70D2B] text-white font-bold text-xs uppercase tracking-wider px-5 py-3.5 rounded-lg shadow transition-all active:scale-95 flex items-center gap-2 group cursor-pointer"
+                className="w-full text-center justify-center bg-neutral-900 hover:bg-[#B70D2B] text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider px-2 sm:px-3 py-3 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5 group cursor-pointer whitespace-nowrap"
                 title="Download Dharohar 2026 Brochure (PDF)"
               >
-                <Download className="w-4 h-4 text-neutral-300 group-hover:text-white group-hover:translate-y-0.5 transition-transform" />
+                <Download className="w-3.5 h-3.5 text-neutral-300 group-hover:text-white shrink-0" />
                 <span>Download Brochure</span>
               </a>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: COMPLETE BROCHURE DETAILS & INVITATION WITH KEYWORD HIGHLIGHTS */}
-          <div className="lg:col-span-6 flex flex-col justify-between space-y-6">
+          {/* RIGHT COLUMN: COMPLETE BROCHURE DETAILS & INVITATION (BALANCED TO MATCH LEFT HEIGHT) */}
+          <div className="lg:col-span-6 flex flex-col justify-between h-full gap-4">
             {/* Part 1: GCA Alumni Meet - DHAROHAR 2026 */}
-            <div className="space-y-3">
-
-              <p className="text-xs sm:text-[15px] leading-relaxed text-neutral-700 text-left sm:text-justify">
+            <div className="text-neutral-700 leading-relaxed text-xs sm:text-[14px]">
+              <p>
                 Alumni Meets, named{" "}
                 <span className="text-[#B70D2B] font-extrabold">Dharohar</span>,
                 serve as a vibrant platform for reconnecting with former
@@ -141,57 +142,56 @@ export const DharoharSection = () => {
                 </span>
                 , allowing alumni to engage with their alma mater, share their
                 professional journeys, and contribute to the institution&apos;s
-                growth. Through interactive sessions, cultural programs, and{" "}
-                networking opportunities, Alumni Meets strengthen bonds and
-                encourage meaningful collaborations between past and present
-                members of the academic community.
+                growth.
               </p>
             </div>
 
-            {/* Part 2: Invitation Block */}
-            <div className="bg-neutral-50/90 border-l-4 border-[#B70D2B] border border-neutral-200/80 rounded-r-xl p-5 sm:p-6 space-y-3.5 shadow-xs">
-              <h3 className="text-2xl sm:text-3xl font-light text-[#E31E24] tracking-wide font-sans">
-                Invitation
-              </h3>
+            {/* Part 2: Invitation Block - Flex-1 to stretch and match Left Column height */}
+            <div className="flex-1 flex flex-col justify-between bg-neutral-50/90 border-l-4 border-[#B70D2B] border border-neutral-200/80 rounded-r-xl p-5 sm:p-6 shadow-xs">
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-light text-[#E31E24] tracking-wide font-sans mb-3">
+                  Invitation
+                </h3>
 
-              <p className="text-xs sm:text-[15px] leading-relaxed text-neutral-700">
-                The{" "}
-                <strong className="text-neutral-900">
-                  GCA Alumni Association 
-                </strong>{" "}
-                invites you to its Annual General Body Meeting (GBM) on{" "}
-                <span className="bg-[#B70D2B] text-white font-extrabold px-2 py-0.5 rounded text-xs sm:text-sm whitespace-nowrap">
-                  November 28, 2026
-                </span>{" "}
-                — a perfect opportunity to reconnect, share memories, and relive
-                the moments that made your college life special.
-              </p>
+                <p className="text-xs sm:text-[14px] leading-relaxed text-neutral-700 mb-3">
+                  The{" "}
+                  <strong className="text-neutral-900">
+                    GCA Alumni Association 
+                  </strong>{" "}
+                  invites you to its Annual General Body Meeting (GBM) on{" "}
+                  <span className="bg-[#B70D2B] text-white font-extrabold px-2 py-0.5 rounded text-xs sm:text-sm whitespace-nowrap">
+                    November 28, 2026
+                  </span>{" "}
+                  — a perfect opportunity to reconnect, share memories, and relive
+                  the moments that made your college life special.
+                </p>
 
-              <p className="text-xs sm:text-[15px] leading-relaxed text-neutral-700">
-                This year marks a special milestone as we celebrate the{" "}
-                <span className="bg-red-50 border border-red-200 text-[#B70D2B] font-bold px-1.5 py-0.5 rounded">
-                  Ruby Jubilee of the 1986 batch
-                </span>{" "}
-                &amp;{" "}
-                <span className="bg-red-50 border border-red-200 text-[#B70D2B] font-bold px-1.5 py-0.5 rounded">
-                  Silver Jubilee of the 2001 batch
-                </span>{" "}
-                of{" "}
-                <strong className="text-neutral-900">
-                  GCA (now FOAP-AKTU)
-                </strong>
-                . Along with this, we are hosting the much-awaited gala event,{" "}
-                <strong className="text-[#B70D2B] font-extrabold">
-                  DHAROHAR 2026
-                </strong>
-                .
-              </p>
+                <p className="text-xs sm:text-[14px] leading-relaxed text-neutral-700">
+                  This year marks a special milestone as we celebrate the{" "}
+                  <span className="bg-red-50 border border-red-200 text-[#B70D2B] font-bold px-1.5 py-0.5 rounded">
+                    Ruby Jubilee of the 1986 batch
+                  </span>{" "}
+                  &amp;{" "}
+                  <span className="bg-red-50 border border-red-200 text-[#B70D2B] font-bold px-1.5 py-0.5 rounded">
+                    Silver Jubilee of the 2001 batch
+                  </span>{" "}
+                  of{" "}
+                  <strong className="text-neutral-900">
+                    GCA (now FOAP-AKTU)
+                  </strong>
+                  . Along with this, we are hosting the much-awaited gala event,{" "}
+                  <strong className="text-[#B70D2B] font-extrabold">
+                    DHAROHAR 2026
+                  </strong>
+                  .
+                </p>
+              </div>
 
-              <div className="pt-2 border-t border-neutral-200/80 space-y-1">
+              <div className="pt-3 mt-3 border-t border-neutral-200/80">
                 <p className="text-sm sm:text-base italic font-bold text-neutral-900">
                   &ldquo;It&apos;s time to come together once again.&rdquo;
                 </p>
-                <p className="text-xs sm:text-sm font-medium text-neutral-600">
+                <p className="text-xs sm:text-sm font-medium text-neutral-600 mt-0.5">
                   We warmly invite you to be part of this celebration and look
                   forward to welcoming you.
                 </p>

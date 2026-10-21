@@ -304,7 +304,7 @@ export const Navbar = () => {
                   }`
                 }
               >
-                EVENT
+                DHAROHAR 2026
               </NavLink>
               <NavLink
                 to="/gallery"

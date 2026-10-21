@@ -133,7 +133,7 @@ export const Footer = () => {
                   <span>Silver Jubilee (Batch 2001)</span>
                 </Link>
               </li>
-              <li><Link to="/contact" className="hover:text-red-400 transition-colors block">Alumni Life Membership</Link></li>
+              <li><Link to="/registration" className="hover:text-red-400 transition-colors block">Alumni Life Membership</Link></li>
               <li><Link to="/gallery" className="hover:text-red-400 transition-colors block">Heritage &amp; Philatelic Stamps</Link></li>
               <li><Link to="/about" className="hover:text-red-400 transition-colors block">Student Mentorship Circles</Link></li>
               <li><Link to="/events" className="hover:text-red-400 transition-colors block">Annual GBM Proceedings</Link></li>
@@ -172,7 +172,7 @@ export const Footer = () => {
               </div>
 
               <div className="pt-1">
-                <Link to="/contact" className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-950/80 hover:bg-red-600 text-red-400 hover:text-white border border-red-800/80 text-xs font-bold uppercase tracking-wider rounded transition-all">
+                <Link to="/registration" className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-950/80 hover:bg-red-600 text-red-400 hover:text-white border border-red-800/80 text-xs font-bold uppercase tracking-wider rounded transition-all">
                   Register As Alumnus <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

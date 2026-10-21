@@ -34,20 +34,17 @@ export const ContactPage = () => {
   return (
     <div className="w-full bg-white text-neutral-900">
       {/* ========================================================
-          1. SLEEK MINIMAL HERO BANNER (With college background image, matching Election form)
+          1. SLEEK MINIMAL HERO BANNER
       ======================================================== */}
       <section className="relative overflow-hidden py-12 sm:py-16 flex items-center justify-center border-b border-neutral-300">
-        {/* Background Campus Image */}
         <img
           src={buildingHeroImg}
           alt="Government College of Architecture"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
 
-        {/* Subtle Dark Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
 
-        {/* Content: Title & Breadcrumb Only */}
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 text-center text-white">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight uppercase font-serif drop-shadow-md">
             Contact Secretariat
@@ -66,13 +63,11 @@ export const ContactPage = () => {
           2. MAIN CONTENT: CONTACT INFO (LEFT) + FORM (RIGHT)
       ======================================================== */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 py-10 sm:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+
           {/* LEFT COLUMN: SECRETARIAT DETAILS & OFFICE BEARERS */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Headquarters Card */}
-            <div className="bg-neutral-950 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-neutral-800 space-y-6 relative overflow-hidden">
+          <div className="lg:col-span-5 h-full flex flex-col">
+            <div className="bg-neutral-950 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-neutral-800 space-y-6 relative overflow-hidden flex-1 flex flex-col">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#B70D2B]/10 rounded-full blur-2xl pointer-events-none" />
 
               <div>
@@ -148,7 +143,7 @@ export const ContactPage = () => {
               </div>
 
               {/* Office Bearers Hotline */}
-              <div className="pt-4 border-t border-neutral-800 space-y-3">
+              <div className="pt-4 border-t border-neutral-800 space-y-3 mt-auto">
                 <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">
                   Key Office Bearers
                 </p>
@@ -178,11 +173,10 @@ export const ContactPage = () => {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* RIGHT COLUMN: CLEAN & NORMAL CONTACT FORM */}
-          <div className="lg:col-span-7 bg-white rounded-2xl shadow-xl border border-neutral-200/90 p-6 sm:p-10">
+          <div className="lg:col-span-7 bg-white rounded-2xl shadow-xl border border-neutral-200/90 p-6 sm:p-10 h-full flex flex-col">
             <div className="mb-6">
               <h2 className="text-2xl font-black text-neutral-900 font-serif">
                 Send Us a Message
@@ -193,7 +187,7 @@ export const ContactPage = () => {
             </div>
 
             {isSubmitted ? (
-              <div className="text-center py-10 px-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-4">
+              <div className="text-center py-10 px-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-4 flex-1 flex flex-col items-center justify-center">
                 <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
                   <CheckCircle2 className="w-9 h-9" />
                 </div>
@@ -215,7 +209,7 @@ export const ContactPage = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 flex-1 flex flex-col justify-center">
                 {/* Full Name */}
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">
@@ -311,12 +305,11 @@ export const ContactPage = () => {
       </section>
 
       {/* ========================================================
-          3. CAMPUS ACCESSIBILITY & HOW TO REACH (MATCHING DESIGN)
+          3. CAMPUS ACCESSIBILITY & HOW TO REACH
       ======================================================== */}
       <section className="bg-neutral-50/70 border-t border-neutral-200/80 py-14 sm:py-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14">
-          
-          {/* Section Header */}
+
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[11px] font-extrabold uppercase tracking-widest mb-3.5 shadow-2xs">
               CAMPUS ACCESSIBILITY
@@ -333,9 +326,8 @@ export const ContactPage = () => {
             </p>
           </div>
 
-          {/* Main 2-Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-            
+
             {/* Left Column: Key Transit Distance */}
             <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 p-5 sm:p-7 shadow-xs flex flex-col justify-between space-y-4">
               <div>
@@ -347,7 +339,6 @@ export const ContactPage = () => {
                 </div>
 
                 <div className="space-y-3.5">
-                  {/* Railway */}
                   <div className="p-3.5 sm:p-4 rounded-xl border border-neutral-200/80 bg-neutral-50/40 hover:bg-neutral-50/80 transition-colors flex items-start gap-3.5">
                     <div className="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5 border border-red-100/60">
                       <Train className="w-4.5 h-4.5" />
@@ -362,7 +353,6 @@ export const ContactPage = () => {
                     </div>
                   </div>
 
-                  {/* Airport */}
                   <div className="p-3.5 sm:p-4 rounded-xl border border-neutral-200/80 bg-neutral-50/40 hover:bg-neutral-50/80 transition-colors flex items-start gap-3.5">
                     <div className="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5 border border-red-100/60">
                       <Plane className="w-4.5 h-4.5" />
@@ -377,7 +367,6 @@ export const ContactPage = () => {
                     </div>
                   </div>
 
-                  {/* Bus Terminal */}
                   <div className="p-3.5 sm:p-4 rounded-xl border border-neutral-200/80 bg-neutral-50/40 hover:bg-neutral-50/80 transition-colors flex items-start gap-3.5">
                     <div className="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5 border border-red-100/60">
                       <Car className="w-4.5 h-4.5" />
@@ -394,7 +383,6 @@ export const ContactPage = () => {
                 </div>
               </div>
 
-              {/* Campus Landmark highlight box */}
               <div className="p-4 rounded-xl bg-red-50/60 border border-red-200/80 mt-2">
                 <p className="text-xs font-bold text-[#B70D2B]">Campus Landmark:</p>
                 <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
@@ -405,7 +393,6 @@ export const ContactPage = () => {
 
             {/* Right Column: Embedded Map */}
             <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/80 overflow-hidden shadow-xs relative min-h-[440px] sm:min-h-[480px] flex">
-              {/* Floating 'Open in Maps' Button */}
               <a
                 href="https://maps.google.com/?q=Faculty+of+Architecture+and+Planning,+Tagore+Marg,+Hazratganj,+Lucknow,+Uttar+Pradesh+226007"
                 target="_blank"

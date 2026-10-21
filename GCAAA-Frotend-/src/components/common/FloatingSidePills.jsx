@@ -15,10 +15,10 @@ export const FloatingSidePills = () => {
           1. LEFT SIDE FLOATING ACTION PILLS
       ======================================================== */}
       <div className="hidden md:flex fixed left-0 top-[48%] -translate-y-1/2 z-30 flex-col gap-3 pointer-events-auto">
-        {/* Left Pill 1: Life Membership Registration */}
+        {/* Left Pill 1: Registered Members Directory */}
         <Link
-          to="/registration"
-          title="GCAAA Life Membership Registration"
+          to="/registered-members"
+          title="GCAAA Registered Members Directory"
           className={`${PILL_BASE} rounded-r-2xl border-r-2 border-y-2`}
         >
           <span

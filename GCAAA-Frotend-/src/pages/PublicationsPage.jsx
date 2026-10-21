@@ -69,9 +69,9 @@ export const PublicationsPage = () => {
           2. STATS & QUICK NAVIGATION (Matching Navbar Width: max-w-[1400px])
       ======================================================== */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-14 mt-6 sm:mt-8">
-        <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8 sm:mb-10">
-          {/* Metric Stats Pills */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs font-semibold text-neutral-700">
+        <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-sm p-4 sm:p-5 mb-8 sm:mb-10 flex flex-col gap-3.5 sm:gap-4">
+          {/* Line 1: Metric Stats Pills (Dedicated First Line) */}
+          <div className="flex flex-wrap items-center justify-start gap-2.5 sm:gap-3 text-xs font-semibold text-neutral-700 pb-3 border-b border-neutral-100">
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-50 border border-neutral-200">
               <Layers className="w-3.5 h-3.5 text-[#B70D2B]" />
               <span><strong className="text-neutral-900">3</strong> Milestone Editions</span>
@@ -86,8 +86,8 @@ export const PublicationsPage = () => {
             </div>
           </div>
 
-          {/* Quick Jump Bar */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          {/* Line 2: Quick Jump Bar (Dedicated Second Line) */}
+          <div className="flex flex-wrap items-center justify-start gap-2">
             <span className="text-xs uppercase tracking-wider text-neutral-500 font-bold mr-1">
               Jump To:
             </span>
