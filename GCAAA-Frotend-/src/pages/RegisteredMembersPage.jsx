@@ -105,21 +105,30 @@ export const RegisteredMembersPage = () => {
   const totalPages = isAll ? 1 : Math.ceil(totalMembers / effectiveLimit) || 1;
 
   // Distribute items across responsive columns (3 on desktop, 2 on tablet, 1 on mobile)
+  // Continuous serial numbers matching totalMembers in descending order (e.g. 1731, 1730, 1729...)
+  const membersWithSno = useMemo(() => {
+    const pageOffset = (currentPage - 1) * effectiveLimit;
+    return members.map((member, idx) => ({
+      ...member,
+      continuousSno: Math.max(1, totalMembers - (pageOffset + idx)),
+    }));
+  }, [members, currentPage, effectiveLimit, totalMembers]);
+
   const columnsData = useMemo(() => {
     const numCols = responsiveCols;
     const cols = [];
-    const total = members.length;
+    const total = membersWithSno.length;
     let startIndex = 0;
 
     for (let i = 0; i < numCols; i++) {
       const remainingCols = numCols - i;
       const remainingItems = total - startIndex;
       const chunkSize = Math.ceil(remainingItems / remainingCols);
-      cols.push(members.slice(startIndex, startIndex + chunkSize));
+      cols.push(membersWithSno.slice(startIndex, startIndex + chunkSize));
       startIndex += chunkSize;
     }
     return cols;
-  }, [members, responsiveCols]);
+  }, [membersWithSno, responsiveCols]);
 
   return (
     <div className="min-h-screen bg-[#F4F6F9] text-neutral-900 pb-20">
@@ -275,7 +284,7 @@ export const RegisteredMembersPage = () => {
                               }}
                               className="py-2 px-2 sm:px-3 text-neutral-600 font-medium align-middle text-center sm:text-left whitespace-nowrap text-xs sm:text-sm"
                             >
-                              {item.sno ?? item.displaySno ?? '-'}
+                              {item.continuousSno ?? item.sno ?? item.displaySno ?? '-'}
                             </td>
 
                             {/* Name */}

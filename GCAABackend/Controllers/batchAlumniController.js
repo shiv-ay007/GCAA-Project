@@ -108,17 +108,26 @@ export const getBatchAlumni = async (req, res) => {
  */
 export const getBatchAlumniStats = async (req, res) => {
   try {
-    const total = await BatchAlumni.countDocuments();
-    const paid = await BatchAlumni.countDocuments({ status: 'Paid' });
-    const pending = await BatchAlumni.countDocuments({ status: 'Pending' });
+    const { cohort } = req.query;
+    const cohortFilter = cohort && cohort !== 'total' ? { cohort } : {};
+
+    const total = await BatchAlumni.countDocuments(cohortFilter);
+    const paid = await BatchAlumni.countDocuments({ ...cohortFilter, status: 'Paid' });
+    const pending = await BatchAlumni.countDocuments({ ...cohortFilter, status: 'Pending' });
 
     // Breakdown per cohort
     const cohortBreakdown = await BatchAlumni.aggregate([
       { $group: { _id: '$cohort', count: { $sum: 1 } } },
     ]);
 
-    // Distinct years
-    const distinctYears = await BatchAlumni.distinct('year');
+    // Breakdown per year for active cohort
+    const yearBreakdown = await BatchAlumni.aggregate([
+      { $match: cohortFilter },
+      { $group: { _id: '$year', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const distinctYears = yearBreakdown.map((y) => y._id).filter(Boolean);
 
     return res.status(200).json({
       success: true,
@@ -127,6 +136,8 @@ export const getBatchAlumniStats = async (req, res) => {
         paid,
         pending,
         cohorts: cohortBreakdown,
+        years: yearBreakdown,
+        distinctYears,
         totalBatches: distinctYears.length,
       },
     });

@@ -11,8 +11,8 @@ export const fetchBatchAlumniFromApi = async (params = {}) => {
 /**
  * Fetch batch alumni statistics
  */
-export const fetchBatchAlumniStatsFromApi = async () => {
-  const response = await axiosInstance.get('/batch-alumni/stats');
+export const fetchBatchAlumniStatsFromApi = async (params = {}) => {
+  const response = await axiosInstance.get('/batch-alumni/stats', { params });
   return response.data;
 };
 

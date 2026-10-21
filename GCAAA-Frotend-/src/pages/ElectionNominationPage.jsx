@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Check,
   Gavel,
+  CalendarDays,
 } from 'lucide-react';
 import logoImg from '@/assets/images/logo.png';
 import buildingHeroImg from '@/assets/images/GCAAA_college_building.jpg';
@@ -125,6 +126,7 @@ export const ElectionNominationPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [showSchedule, setShowSchedule] = useState(false);
 
   // Live Membership Verification Status
   const [verificationStatus, setVerificationStatus] = useState({
@@ -922,10 +924,104 @@ export const ElectionNominationPage = () => {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 shrink-0">
-            <img src={logoImg} alt="GCAAA Logo" className="h-12 w-auto object-contain opacity-90" />
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowSchedule((prev) => !prev)}
+              className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span>{showSchedule ? 'Hide Election Schedule' : 'View Election Schedule & Notice'}</span>
+            </button>
+            <img src={logoImg} alt="GCAAA Logo" className="hidden lg:block h-12 w-auto object-contain opacity-90" />
           </div>
         </div>
+
+        {/* Official Election Notice & Schedule Accordion */}
+        {showSchedule && (
+          <div className="mb-6 bg-white rounded-2xl border-2 border-amber-500/40 shadow-md p-5 sm:p-7 overflow-hidden transition-all animate-in fade-in">
+            <div className="text-center max-w-3xl mx-auto mb-6">
+              <span className="text-xs font-bold tracking-widest text-[#142A4A] uppercase block">
+                GCAAA Official Notification
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-[#142A4A] tracking-tight uppercase mt-0.5">
+                Election Notice & Schedule
+              </h3>
+              <p className="text-xs font-bold tracking-wider text-[#C4973B] uppercase mt-1">
+                Election Committee &bull; 2026
+              </p>
+              <p className="text-xs text-neutral-600 mt-2 leading-relaxed">
+                The Election Committee hereby announces the schedule for the GCAAA Elections 2026. All members are requested to participate actively and uphold the spirit of fairness, mutual respect and unity throughout the election process.
+              </p>
+            </div>
+
+            {/* Schedule Table */}
+            <div className="overflow-x-auto max-w-3xl mx-auto rounded-xl border border-neutral-300 shadow-2xs mb-6">
+              <table className="w-full text-xs sm:text-sm border-collapse text-left">
+                <thead>
+                  <tr className="bg-[#142A4A] text-white">
+                    <th className="py-2.5 px-3 sm:px-4 font-bold border-r border-[#233e66] w-2/5">
+                      Date / Timeline
+                    </th>
+                    <th className="py-2.5 px-3 sm:px-4 font-bold">
+                      Election Event & Activity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200">
+                  <tr className="bg-white hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">21 October 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">Declaration of Election</td>
+                  </tr>
+                  <tr className="bg-[#F8FAFC] hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">22&ndash;25 October 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800 font-semibold text-[#8B0000]">Filing of Nominations (4 days)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">26&ndash;27 October 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">Withdrawal of Nominations (2 days)</td>
+                  </tr>
+                  <tr className="bg-[#F8FAFC] hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">28 October 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">Declaration of Final Candidate List</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">29&ndash;31 October 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">Canvassing (3 days)</td>
+                  </tr>
+                  <tr className="bg-[#F8FAFC] hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">1 November 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800 font-bold text-emerald-800">Voting</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">2 November 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">Counting of Votes and Declaration of Results</td>
+                  </tr>
+                  <tr className="bg-[#F8FAFC] hover:bg-neutral-50">
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-neutral-900 border-r border-neutral-200">5 November 2026</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-neutral-800">First AGM of the Newly Elected Executive Body</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Code of Conduct */}
+            <div className="max-w-3xl mx-auto bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-center">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#C4973B] block mb-1">
+                Code of Conduct
+              </span>
+              <p className="text-xs text-neutral-700 leading-relaxed">
+                Members are requested to refrain from campaigning on the official GCAAA community group. All election-related activities should be conducted in a healthy, cordial and respectful environment. Let us preserve the harmony, dignity and integrity of our association and ensure a fair and transparent election process.
+              </p>
+              <p className="text-xs font-bold text-[#142A4A] mt-2">
+                Your participation and cooperation are sincerely appreciated.
+              </p>
+              <span className="text-[11px] text-neutral-500 font-medium block mt-0.5">
+                By Order of the Election Committee, GCAAA
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Main Form Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
