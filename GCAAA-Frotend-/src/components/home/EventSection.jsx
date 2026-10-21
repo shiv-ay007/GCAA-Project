@@ -128,7 +128,7 @@ export const EventSection = () => {
 
               {/* RSVP Direct Button */}
               <Link
-                to="/contact"
+                to="/registration"
                 className="w-full text-center bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2"
               >
                 <Ticket className="w-4 h-4" /> Register &amp; Reserve Your Seat
@@ -213,7 +213,7 @@ export const EventSection = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-4 mb-4">
               <div>
                 <h3 className="text-lg sm:text-xl font-black text-neutral-900 tracking-tight">
-                  Event Day Itinerary
+                  Event Day Itinerary (Tentative Schedule)
                 </h3>
                 <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1.5 font-medium">
                   <Calendar className="w-3.5 h-3.5 text-[#B70D2B]" />
