@@ -1128,7 +1128,10 @@ export const ElectionNominationPage = () => {
               {/* Left Columns: Text Inputs */}
               <div className="lg:col-span-7 xl:col-span-8 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Full Name */}
+                  {/* Membership Number — FIRST */}
+                  {renderMembershipInput('candidate', 'GCAAA Membership No.')}
+
+                  {/* Full Name — SECOND */}
                   <div>
                     <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
                       Candidate Name <span className="text-red-600 font-black">*</span>
@@ -1150,9 +1153,6 @@ export const ElectionNominationPage = () => {
                       </p>
                     )}
                   </div>
-
-                  {/* Membership Number */}
-                  {renderMembershipInput('candidate', 'GCAAA Membership No.')}
 
                   {/* Mobile No. */}
                   <div>
@@ -1390,7 +1390,10 @@ export const ElectionNominationPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
               <div className="lg:col-span-3 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Full Name */}
+                  {/* Membership Number — FIRST */}
+                  {renderMembershipInput('proposer', 'GCAAA Membership No.')}
+
+                  {/* Full Name — SECOND */}
                   <div>
                     <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
                       Proposer Name <span className="text-red-600 font-black">*</span>
@@ -1412,9 +1415,6 @@ export const ElectionNominationPage = () => {
                       </p>
                     )}
                   </div>
-
-                  {/* Membership Number */}
-                  {renderMembershipInput('proposer', 'GCAAA Membership No.')}
 
                   {/* Mobile No. */}
                   <div>
@@ -1487,7 +1487,7 @@ export const ElectionNominationPage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Proposer Photograph Upload */}
+              {/* Right Column: Proposer Signature Upload */}
               <div className="flex flex-col items-center justify-center">
                 <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
                   Upload Signature <span className="text-red-600 font-black">*</span>
@@ -1503,8 +1503,8 @@ export const ElectionNominationPage = () => {
                     <div className="relative w-full h-full group">
                       <img
                         src={formData.proposer.photo}
-                        alt="Proposer preview"
-                        className="w-full h-full object-cover rounded-lg"
+                        alt="Proposer signature preview"
+                        className="w-full h-full object-contain bg-white rounded-lg p-1"
                       />
                       <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                         <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
@@ -1529,9 +1529,9 @@ export const ElectionNominationPage = () => {
                     <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
                       <div className="relative mb-2">
                         <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
-                          <Camera className="w-5 h-5" />
+                          <FileSignature className="w-5 h-5 text-neutral-600" />
                         </div>
-                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-[10px] font-bold">
                           +
                         </span>
                       </div>
@@ -1574,7 +1574,10 @@ export const ElectionNominationPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
               <div className="lg:col-span-3 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Full Name */}
+                  {/* Membership Number — FIRST */}
+                  {renderMembershipInput('seconder', 'GCAAA Membership No.')}
+
+                  {/* Full Name — SECOND */}
                   <div>
                     <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-1">
                       Seconder Name <span className="text-red-600 font-black">*</span>
@@ -1596,9 +1599,6 @@ export const ElectionNominationPage = () => {
                       </p>
                     )}
                   </div>
-
-                  {/* Membership Number */}
-                  {renderMembershipInput('seconder', 'GCAAA Membership No.')}
 
                   {/* Mobile No. */}
                   <div>
@@ -1671,7 +1671,7 @@ export const ElectionNominationPage = () => {
                 </div>
               </div>
 
-              {/* Right Column: Seconder Photograph Upload */}
+              {/* Right Column: Seconder Signature Upload */}
               <div className="flex flex-col items-center justify-center">
                 <label className="block text-xs sm:text-sm font-bold text-neutral-800 mb-2">
                   Upload Signature <span className="text-red-600 font-black">*</span>
@@ -1687,8 +1687,8 @@ export const ElectionNominationPage = () => {
                     <div className="relative w-full h-full group">
                       <img
                         src={formData.seconder.photo}
-                        alt="Seconder preview"
-                        className="w-full h-full object-cover rounded-lg"
+                        alt="Seconder signature preview"
+                        className="w-full h-full object-contain bg-white rounded-lg p-1"
                       />
                       <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                         <label className="cursor-pointer bg-white text-neutral-900 text-xs font-bold py-1 px-3 rounded shadow hover:bg-neutral-100">
@@ -1713,9 +1713,9 @@ export const ElectionNominationPage = () => {
                     <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
                       <div className="relative mb-2">
                         <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
-                          <Camera className="w-5 h-5" />
+                          <FileSignature className="w-5 h-5 text-neutral-600" />
                         </div>
-                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-[10px] font-bold">
                           +
                         </span>
                       </div>
@@ -1741,7 +1741,6 @@ export const ElectionNominationPage = () => {
 
           {/* ========================================================
               CARD 05: DECLARATION & SUBMISSION
-              (Know Your GCAAA Number button placed ONLY HERE as requested)
           ======================================================== */}
           <div className="bg-white rounded-2xl shadow-sm border border-neutral-200/90 p-5 sm:p-7 space-y-6">
             <div className="flex items-center gap-3 border-b border-neutral-200 pb-3">
@@ -1787,25 +1786,6 @@ export const ElectionNominationPage = () => {
               )}
             </div>
 
-            {/* SINGLE MINIMAL "KNOW YOUR GCAAA NUMBER" BUTTON RIGHT ABOVE SUBMIT */}
-            <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="text-xs text-neutral-600 flex items-center gap-2">
-                <Search className="w-4 h-4 text-[#8B0000] shrink-0" />
-                <span>
-                  Don't know your or your proposer/seconder's GCAAA Membership Number? Look up in the directory.
-                </span>
-              </div>
-              <Link
-                to="/registered-members"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-neutral-900 hover:bg-[#8B0000] text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm shrink-0 cursor-pointer"
-              >
-                <span>Know Your GCAAA Number</span>
-                <ExternalLink className="w-3 h-3" />
-              </Link>
-            </div>
-
             {/* Action Buttons: Reset & Submit */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
               <button
@@ -1837,6 +1817,27 @@ export const ElectionNominationPage = () => {
             </div>
           </div>
         </form>
+
+        {/* ========================================================
+            KNOW YOUR GCAAA NUMBER — OUTSIDE THE FORM, RIGHT BELOW IT
+        ======================================================== */}
+        <div className="mt-6 p-4 sm:p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-xs sm:text-sm text-neutral-600 flex items-center gap-2">
+            <Search className="w-4 h-4 text-[#8B0000] shrink-0" />
+            <span>
+              Don't know your or your proposer/seconder's GCAAA Membership Number? Look up in the directory.
+            </span>
+          </div>
+          <Link
+            to="/registered-members"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-neutral-900 hover:bg-[#8B0000] text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm shrink-0 cursor-pointer"
+          >
+            <span>Know Your GCAAA Number</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+        </div>
       </div>
 
       {/* ========================================================

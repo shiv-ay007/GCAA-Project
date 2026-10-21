@@ -49,7 +49,7 @@ export const ElectionNominationModal = () => {
     >
       {/* Modal Card Container */}
       <div
-        className="relative w-full max-w-[460px] sm:max-w-[500px] md:max-w-[520px] bg-neutral-950 text-white rounded-2xl shadow-2xl border border-neutral-700/90 overflow-hidden flex flex-col max-h-[94vh] animate-in zoom-in-95 duration-200"
+        className="relative w-auto max-w-[min(94vw,500px)] bg-neutral-950 text-white rounded-2xl shadow-2xl border border-neutral-700/90 overflow-hidden flex flex-col max-h-[96vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Decorative Header Band */}
@@ -65,12 +65,12 @@ export const ElectionNominationModal = () => {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Banner Image Area */}
-        <div className="relative w-full bg-white p-0 m-0 overflow-y-auto max-h-[calc(94vh-115px)] flex items-center justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Banner Image Area (Fits 100% without scroll or slider) */}
+        <div className="relative w-full bg-white p-0 m-0 overflow-hidden flex items-center justify-center shrink min-h-0">
           <img
             src={electionBannerImg}
             alt="GCAAA Executive Body Election 2026-2028 Official Notice & Schedule"
-            className="w-full h-auto block select-none"
+            className="w-auto h-auto max-h-[calc(94vh-135px)] max-w-full object-contain block select-none mx-auto"
           />
         </div>
 
