@@ -3,9 +3,7 @@ import dns from 'dns';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import apiRoutes from './Routes/index.js';
@@ -83,22 +81,11 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static Frontend Support: If 'dist' folder is present in backend, serve it seamlessly
-const distPath = path.join(__dirname, 'dist');
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-}
-
 // Consolidated API Routes from Routes/index.js
 app.use('/api', apiRoutes);
 
-// Root route: Renders React app if dist exists, or EJS dashboard with safe JSON fallback
+// Root route: Renders EJS status dashboard with safe JSON fallback
 app.get('/', (req, res) => {
-  const distIndex = path.join(distPath, 'index.html');
-  if (fs.existsSync(distIndex) && (!req.headers.accept || !req.headers.accept.includes('application/json'))) {
-    return res.sendFile(distIndex);
-  }
-
   // If request explicitly asks for JSON (e.g. Postman, cURL)
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(200).json({
@@ -159,17 +146,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// SPA Client-Side Routing Fallback: If dist/index.html exists, serve it for non-API GET routes (Express 5 compatible)
-app.use((req, res, next) => {
-  if (req.method === 'GET' && !req.path.startsWith('/api')) {
-    const distIndex = path.join(distPath, 'index.html');
-    if (fs.existsSync(distIndex)) {
-      return res.sendFile(distIndex);
-    }
-  }
-  next();
-});
-
 // 404 Route Handler
 app.use((req, res) => {
   res.status(404).json({
@@ -195,8 +171,8 @@ mongoose
   .then(async () => {
     console.log('MongoDB Atlas connected successfully!');
     await seedDefaultAdmin();
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`GCAAA Server running on http://localhost:${PORT}`);
+    app.listen(PORT, () => {
+      console.log(`GCAAA Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
