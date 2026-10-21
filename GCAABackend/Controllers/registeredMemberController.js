@@ -504,7 +504,7 @@ export const registerAlumni = async (req, res) => {
       residenceCountry = 'India',
       residencePhone = '',
       paymentMode = 'Online',
-      amount = 2000,
+      amount = 1000,
       chequeNo = '',
       drawnOnBank = '',
       chequeDate = '',
@@ -626,7 +626,7 @@ export const registerAlumni = async (req, res) => {
       },
       paymentDetails: {
         mode: paymentMode || 'Online',
-        amount: Number(amount) || 2000,
+        amount: Number(amount) || 1000,
         chequeNo: chequeNo || '',
         drawnOnBank: drawnOnBank || '',
         chequeDate: chequeDate || '',

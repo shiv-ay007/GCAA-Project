@@ -64,7 +64,7 @@ export const AlumniRegistrationPage = () => {
     residenceCountry: 'India',
     residencePhone: '',
     paymentMode: 'Online',
-    amount: '2000',
+    amount: '1000',
     chequeNo: '',
     drawnOnBank: '',
     chequeDate: '',
@@ -583,7 +583,7 @@ export const AlumniRegistrationPage = () => {
             <div className="grid grid-cols-4 gap-2 p-2 rounded bg-neutral-50 border border-neutral-200 text-[10px]">
               <div>
                 <span className="text-neutral-500 font-semibold block text-[9px] uppercase">Contribution Amount</span>
-                <strong className="text-xs text-neutral-900">₹ {membershipData.amount || '2,000'}/- (Lifetime)</strong>
+                <strong className="text-xs text-neutral-900">₹ {membershipData.amount || '1,000'}/- (Lifetime)</strong>
               </div>
               <div>
                 <span className="text-neutral-500 font-semibold block text-[9px] uppercase">Payment Mode</span>
@@ -1321,7 +1321,7 @@ export const AlumniRegistrationPage = () => {
                                 </div>
                               </div>
                               <span className="text-xs font-black text-[#B70D2B] bg-red-50 px-3 py-1 rounded-md border border-red-200">
-                                Amount: ₹ {membershipData.amount || '2,000'}/-
+                                Amount: ₹ {membershipData.amount || '1,000'}/-
                               </span>
                             </div>
 
@@ -1345,7 +1345,7 @@ export const AlumniRegistrationPage = () => {
                                   </div>
                                 </div>
                                 <span className="self-start sm:self-auto text-[11px] font-black uppercase tracking-wider text-[#B70D2B] bg-red-100 px-3 py-1 rounded-full border border-red-200 shrink-0">
-                                  ₹ 2,000/- (Lifetime)
+                                  ₹ 1,000/- (Lifetime)
                                 </span>
                               </div>
                             </div>
@@ -1446,7 +1446,7 @@ export const AlumniRegistrationPage = () => {
                                       <Upload className="w-6 h-6" />
                                     </div>
                                     <p className="text-sm font-extrabold text-neutral-900">Click to Upload Payment Screenshot</p>
-                                    <span className="text-[10px] text-neutral-500 mt-0.5">Upload proof of ₹ 2,000 transfer</span>
+                                    <span className="text-[10px] text-neutral-500 mt-0.5">Upload proof of ₹ 1,000 transfer</span>
                                   </label>
                                 )}
                                 {fieldErrors.paymentProof && (

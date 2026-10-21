@@ -19,9 +19,9 @@ export const menuItems = [
   { name: 'All Batches of GCAAA', path: '/all-batches', icon: Users },
   { name: 'Election Nominations', path: '/election-nominations', icon: Vote },
   { name: 'Blogs & Articles', path: '/blogs', icon: FileText },
-  { name: 'Events', path: '/events', icon: CalendarDays },
-  { name: 'Gallery', path: '/gallery', icon: Image },
-  { name: 'Publications', path: '/publications', icon: BookOpen },
+  // { name: 'Events', path: '/events', icon: CalendarDays },
+  // { name: 'Gallery', path: '/gallery', icon: Image },
+  // { name: 'Publications', path: '/publications', icon: BookOpen },
 ]
 
 const Sidebar = ({ isOpen, setIsOpen }) => {

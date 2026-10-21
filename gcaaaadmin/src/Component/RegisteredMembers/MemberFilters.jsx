@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, UserPlus, Filter, X, RefreshCw } from 'lucide-react'
+import { Search, Filter, X, RefreshCw } from 'lucide-react'
 
 const MemberFilters = ({
   searchQuery,
@@ -10,7 +10,6 @@ const MemberFilters = ({
   setSelectedStatus,
   pageSize,
   setPageSize,
-  onOpenAddModal,
   onRefresh,
   loading,
 }) => {
@@ -84,15 +83,6 @@ const MemberFilters = ({
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin text-[#800018]' : ''} />
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenAddModal}
-          className="flex items-center gap-2 rounded-xl bg-[#800018] px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#800018]/15 transition hover:bg-[#a00020] active:scale-95 cursor-pointer"
-        >
-          <UserPlus size={16} />
-          Register Member
         </button>
       </div>
     </div>

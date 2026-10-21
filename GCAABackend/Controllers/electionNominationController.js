@@ -1,4 +1,5 @@
 import ElectionNomination from '../Models/ElectionNomination.js';
+import RegisteredMember from '../Models/RegisteredMember.js';
 import { uploadToCloudinary } from '../Config/cloudinary.js';
 import { sendElectionNominationReceiptEmail } from '../Utils/emailService.js';
 
@@ -132,11 +133,11 @@ export const submitNomination = async (req, res) => {
     }
 
     // 2. Verify all 3 membership numbers exist in the RegisteredMember database
-    const RegisteredMember = require('../Models/RegisteredMember');
+    const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const [candMember, propMember, secMember] = await Promise.all([
-      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${candNo}$`, 'i') } }),
-      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${propNo}$`, 'i') } }),
-      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${secNo}$`, 'i') } }),
+      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${escapeRegex(candNo)}$`, 'i') } }),
+      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${escapeRegex(propNo)}$`, 'i') } }),
+      RegisteredMember.findOne({ membershipNo: { $regex: new RegExp(`^${escapeRegex(secNo)}$`, 'i') } }),
     ]);
 
     if (!candMember) {
@@ -218,21 +219,26 @@ export const submitNomination = async (req, res) => {
       status: 'Submitted',
     });
 
-    // Send nomination receipt email to the candidate
-    try {
-      console.log(`[electionNominationController] 🚀 Sending nomination receipt email to: ${newNomination.candidate?.email}`);
-      const emailResult = await sendElectionNominationReceiptEmail(newNomination);
-      console.log('[electionNominationController] 📩 Email dispatch result:', emailResult);
-    } catch (emailErr) {
-      console.error('[electionNominationController] ❌ Error dispatching nomination receipt email:', emailErr.message);
-    }
-
-    return res.status(201).json({
+    // Return success response immediately to user without blocking on PDF/SMTP email
+    res.status(201).json({
       success: true,
       message: 'Election Nomination Form submitted successfully!',
       nominationId: newNomination.nominationId,
       data: newNomination,
     });
+
+    // Send nomination receipt email asynchronously in background
+    setImmediate(async () => {
+      try {
+        console.log(`[electionNominationController] 🚀 Sending nomination receipt email to: ${newNomination.candidate?.email}`);
+        const emailResult = await sendElectionNominationReceiptEmail(newNomination);
+        console.log('[electionNominationController] 📩 Email dispatch result:', emailResult);
+      } catch (emailErr) {
+        console.error('[electionNominationController] ❌ Error dispatching nomination receipt email:', emailErr.message);
+      }
+    });
+
+    return;
   } catch (error) {
     console.error('Error submitting election nomination:', error);
     return res.status(500).json({

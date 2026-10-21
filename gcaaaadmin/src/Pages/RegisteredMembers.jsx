@@ -238,7 +238,6 @@ const RegisteredMembers = () => {
         setSelectedStatus={setSelectedStatus}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        onOpenAddModal={handleOpenAdd}
         onRefresh={() => {
           loadMembers()
           loadStats()

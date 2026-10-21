@@ -1,90 +1,114 @@
 import React from 'react'
-import { GraduationCap, MapPin, Award, Compass } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { GraduationCap, ArrowUpRight, Layers } from 'lucide-react'
 
-const programs = [
-  { name: 'Bachelor of Architecture (B.Arch)', count: '3,490 alumni', percentage: 72, color: 'bg-[#800018]' },
-  { name: 'M.Arch (Urban Design)', count: '680 alumni', percentage: 14, color: 'bg-[#d4af37]' },
-  { name: 'M.Arch (Landscape Architecture)', count: '435 alumni', percentage: 9, color: 'bg-emerald-700' },
-  { name: 'Ph.D in Architecture & Planning', count: '245 alumni', percentage: 5, color: 'bg-amber-600' },
+const COHORT_COLORS = [
+  'bg-[#700018]',
+  'bg-[#9f1239]',
+  'bg-[#b45309]',
+  'bg-[#d4af37]',
+  'bg-emerald-700',
+  'bg-indigo-700',
+  'bg-cyan-700',
+  'bg-amber-600',
 ]
 
-const chapters = [
-  { city: 'Lucknow Chapter', count: '1,420 members', isHQ: true },
-  { city: 'Delhi-NCR Chapter', count: '980 members', isHQ: false },
-  { city: 'Mumbai & West Coast', count: '640 members', isHQ: false },
-  { city: 'Bengaluru / South India', count: '510 members', isHQ: false },
-  { city: 'International Alumni Chapter', count: '420 members', isHQ: false },
-]
+const formatCohortLabel = (id = '') => {
+  if (!id || id === 'all') return 'B.Arch & Foundation'
+  if (id === 'b-arch') return 'Bachelor of Architecture'
+  if (id === 'm-arch') return 'Master of Architecture'
+  if (id === 'murp') return 'Master of Urban & Regional Planning'
+  if (id === 'miend') return 'Master in Environmental Design'
+  if (id === 'mind') return 'Master in Interior Design'
+  if (id.endsWith('s')) return `${id} Cohort`
+  return id.toUpperCase()
+}
 
-const BatchDistributionChart = () => {
+const BatchDistributionChart = ({ cohorts = [], totalRecords = 0, loading = false }) => {
+  // Sort cohorts by count descending, ignore empty
+  const validCohorts = cohorts
+    .filter((c) => c && c.count > 0 && c._id)
+    .sort((a, b) => b.count - a.count)
+
+  const effectiveTotal =
+    totalRecords > 0
+      ? totalRecords
+      : validCohorts.reduce((acc, curr) => acc + (curr.count || 0), 0)
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {/* Degree Distribution */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#800018]/10 text-[#800018]">
             <GraduationCap size={18} />
           </div>
           <div>
             <h4 className="font-serif text-sm font-bold text-gray-900">
-              Alumni by Academic Program
+              Alumni Distribution by Cohort / Program
             </h4>
             <p className="text-[11px] text-gray-400">
-              Department qualification breakdown
+              Live breakdown of records in the alumni directory
             </p>
           </div>
         </div>
 
-        <div className="mt-4 space-y-3.5">
-          {programs.map((item) => (
-            <div key={item.name}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-gray-700">{item.name}</span>
-                <span className="font-semibold text-gray-900">{item.count}</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${item.color} transition-all duration-500`}
-                  style={{ width: `${item.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+        <Link
+          to="/all-batches"
+          className="flex items-center gap-1 text-xs font-semibold text-[#800018] hover:text-[#bd0929] transition"
+        >
+          View All <ArrowUpRight size={13} />
+        </Link>
       </div>
 
-      {/* Regional Alumni Chapters */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4af37]/20 text-[#800018]">
-            <MapPin size={18} />
-          </div>
-          <div>
-            <h4 className="font-serif text-sm font-bold text-gray-900">
-              Regional Alumni Chapters
-            </h4>
-            <p className="text-[11px] text-gray-400">
-              Active networking clusters across regions
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3.5 divide-y divide-gray-50 space-y-2">
-          {chapters.map((ch) => (
-            <div key={ch.city} className="flex items-center justify-between pt-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#800018]" />
-                <span className="font-medium text-gray-800">{ch.city}</span>
-                {ch.isHQ && (
-                  <span className="rounded bg-[#800018]/10 px-1.5 py-0.2 text-[9px] font-bold text-[#800018]">
-                    Campus HQ
-                  </span>
-                )}
+      <div className="mt-4 space-y-3.5">
+        {loading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="animate-pulse space-y-1.5">
+              <div className="flex justify-between">
+                <div className="h-3 w-32 bg-gray-200 rounded" />
+                <div className="h-3 w-16 bg-gray-200 rounded" />
               </div>
-              <span className="font-semibold text-gray-600">{ch.count}</span>
+              <div className="h-2 w-full bg-gray-100 rounded-full" />
             </div>
-          ))}
-        </div>
+          ))
+        ) : validCohorts.length === 0 ? (
+          <div className="py-6 text-center text-gray-400">
+            <Layers className="mx-auto h-6 w-6 text-gray-300 mb-1" />
+            <p className="text-xs">No cohort breakdown data available.</p>
+          </div>
+        ) : (
+          validCohorts.slice(0, 6).map((item, idx) => {
+            const pct =
+              effectiveTotal > 0
+                ? Math.min(100, Math.round(((item.count || 0) / effectiveTotal) * 100))
+                : 0
+            const colorClass = COHORT_COLORS[idx % COHORT_COLORS.length]
+
+            return (
+              <div key={item._id}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-medium text-gray-700">
+                    {formatCohortLabel(item._id)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-900">
+                      {Number(item.count || 0).toLocaleString('en-IN')}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium w-8 text-right">
+                      {pct}%
+                    </span>
+                  </div>
+                </div>
+                <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${colorClass} transition-all duration-500`}
+                    style={{ width: `${Math.max(pct, 2)}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )

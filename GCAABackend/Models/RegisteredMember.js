@@ -105,7 +105,7 @@ const registeredMemberSchema = new mongoose.Schema(
     },
     paymentDetails: {
       mode: { type: String, enum: ['Cheque', 'Cash', 'Online'], default: 'Online' },
-      amount: { type: Number, default: 2000 },
+      amount: { type: Number, default: 1000 },
       chequeNo: { type: String, default: '' },
       drawnOnBank: { type: String, default: '' },
       chequeDate: { type: String, default: '' },

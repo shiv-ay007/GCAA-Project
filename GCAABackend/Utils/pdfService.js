@@ -62,7 +62,7 @@ function generateRegistrationReceiptPdf(member) {
       const offText = [offStreet, offCity, offCountry].filter(Boolean).join(', ') || 'N/A';
 
       // Payment
-      const amountPaid = member.paymentDetails?.amount ? `Rs. ${Number(member.paymentDetails.amount).toLocaleString('en-IN')}/- (Lifetime)` : 'Rs. 2000/- (Lifetime)';
+      const amountPaid = member.paymentDetails?.amount ? `Rs. ${Number(member.paymentDetails.amount).toLocaleString('en-IN')}/- (Lifetime)` : 'Rs. 1000/- (Lifetime)';
       const paymentMode = member.paymentDetails?.mode || 'Online';
       const transactionRef = member.paymentDetails?.transactionRef || member.paymentDetails?.chequeNo || 'N/A';
       const paymentProof = member.paymentDetails?.paymentProofName || (member.paymentDetails?.paymentProof ? 'Screenshot Attached \u2713' : 'Screenshot Attached \u2713');
