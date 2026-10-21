@@ -9,7 +9,6 @@ import {
   ArrowUpDown,
   Download,
   AlertCircle,
-  FileSpreadsheet,
   HeartHandshake,
   Loader2
 } from 'lucide-react';
@@ -389,19 +388,6 @@ export const AlumniDataListPage = () => {
 
         {/* Filters Card */}
         <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-5 shadow-xs mb-6">
-          {/* Title row */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100">
-            <div>
-              <h2 className="text-sm sm:text-base font-bold text-neutral-900 flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-[#B70D2B]" />
-                <span>{currentCohort.course}</span>
-              </h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Displaying <strong>{totalCohortCount}</strong> verified alumni across {activeBatches.length} batch groups.
-              </p>
-            </div>
-          </div>
-
           {/* Filter Controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
             <div className="sm:col-span-2 lg:col-span-5 relative">
@@ -586,9 +572,9 @@ export const AlumniDataListPage = () => {
                   <table className="w-full table-fixed min-w-[500px] text-xs sm:text-sm border-collapse">
                     <thead className="bg-[#111827] text-white uppercase font-black text-[11px] tracking-wider border-b border-neutral-800">
                       <tr>
-                        <th className="py-3.5 px-4 sm:px-6 w-[15%] text-left">SR NO.</th>
-                        <th className="py-3.5 px-4 sm:px-6 w-[25%] text-left">YEAR</th>
-                        <th className="py-3.5 px-4 sm:px-6 w-[60%] text-left">NAME</th>
+                        <th className="py-3.5 px-4 sm:px-6 w-[18%] text-left whitespace-nowrap">SR NO.</th>
+                        <th className="py-3.5 px-4 sm:px-6 w-[22%] text-left whitespace-nowrap">YEAR</th>
+                        <th className="py-3.5 px-4 sm:px-6 w-[60%] text-left whitespace-nowrap">NAME</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-200 text-neutral-800">
@@ -612,7 +598,7 @@ export const AlumniDataListPage = () => {
                           >
                             <td
                               style={numFont}
-                              className="py-2.5 px-4 sm:px-6 text-left font-bold text-neutral-400"
+                              className="py-2.5 px-4 sm:px-6 text-left font-bold text-neutral-400 whitespace-nowrap"
                             >
                               {globalIndex}
                             </td>
@@ -621,7 +607,7 @@ export const AlumniDataListPage = () => {
                               {displayYear ? (
                                 <span
                                   style={numFont}
-                                  className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900"
+                                  className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900 whitespace-nowrap"
                                 >
                                   {displayYear}
                                 </span>
