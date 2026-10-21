@@ -8,9 +8,9 @@ const batchAlumniSchema = new mongoose.Schema(
     },
     year: {
       type: String,
-      required: [true, 'Graduation year or batch is required'],
       trim: true,
       index: true,
+      default: '',
     },
     name: {
       type: String,
@@ -54,7 +54,7 @@ const batchAlumniSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Paid', 'Pending'],
+      enum: ['Paid', 'Pending', 'In Memoriam', 'Active'],
       default: 'Paid',
       index: true,
     },

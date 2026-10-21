@@ -5,6 +5,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import apiRoutes from './Routes/index.js';
@@ -82,11 +83,22 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Static Frontend Support: If 'dist' folder is present in backend, serve it seamlessly
+const distPath = path.join(__dirname, 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
 // Consolidated API Routes from Routes/index.js
 app.use('/api', apiRoutes);
 
-// Root route: Renders beautiful live UI dashboard with fallback to JSON
+// Root route: Renders React app if dist exists, or EJS dashboard with safe JSON fallback
 app.get('/', (req, res) => {
+  const distIndex = path.join(distPath, 'index.html');
+  if (fs.existsSync(distIndex) && (!req.headers.accept || !req.headers.accept.includes('application/json'))) {
+    return res.sendFile(distIndex);
+  }
+
   // If request explicitly asks for JSON (e.g. Postman, cURL)
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(200).json({
@@ -115,11 +127,25 @@ app.get('/', (req, res) => {
 
   const isDbConnected = mongoose.connection.readyState === 1;
 
+  // Safe render with error callback to avoid 500 error if views folder is absent
   res.render('index', {
     status: 'Healthy',
     dbStatus: isDbConnected ? 'Connected (Atlas)' : 'Ready / Active',
     uptime: formattedUptime,
+    uptimeSec: uptimeSec,
     environment: process.env.NODE_ENV || 'production',
+  }, (err, html) => {
+    if (err) {
+      return res.status(200).json({
+        success: true,
+        message: 'GCAAA Alumni Association Backend API is running!',
+        status: 'Healthy',
+        dbStatus: isDbConnected ? 'Connected (Atlas)' : 'Ready / Active',
+        uptime: formattedUptime,
+        environment: process.env.NODE_ENV || 'production',
+      });
+    }
+    res.send(html);
   });
 });
 
@@ -131,6 +157,17 @@ app.get('/api/health', (req, res) => {
     uptime: `${Math.floor(process.uptime())} seconds`,
     timestamp: new Date().toISOString(),
   });
+});
+
+// SPA Client-Side Routing Fallback: If dist/index.html exists, serve it for non-API GET routes (Express 5 compatible)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    const distIndex = path.join(distPath, 'index.html');
+    if (fs.existsSync(distIndex)) {
+      return res.sendFile(distIndex);
+    }
+  }
+  next();
 });
 
 // 404 Route Handler

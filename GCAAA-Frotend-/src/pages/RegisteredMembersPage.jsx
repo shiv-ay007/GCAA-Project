@@ -282,7 +282,12 @@ export const RegisteredMembersPage = () => {
                             <td
                               className="py-2 px-2 sm:px-3 text-neutral-900 font-semibold align-middle text-left text-xs sm:text-sm break-words leading-snug"
                             >
-                              {item.name}
+                              <span>{item.name}</span>
+                              {(item.status === 'In Memoriam' || item.name?.toLowerCase().startsWith('late ')) && (
+                                <span className="block text-[10px] font-semibold text-neutral-500 italic mt-0.5">
+                                  No more with us (In Memoriam)
+                                </span>
+                              )}
                             </td>
 
                             {/* Membership No */}

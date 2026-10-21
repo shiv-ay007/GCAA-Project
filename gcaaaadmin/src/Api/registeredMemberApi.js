@@ -1,55 +1,45 @@
-import axios from 'axios';
-import { API_BASE_URL } from './config';
+import axiosInstance from './axiosInstance';
 
-const TOKEN_KEY = 'gcaaa_admin_token';
-
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 15000,
-});
-
-// Attach JWT token automatically to every request if present
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+export const api = axiosInstance;
 
 // Registered Members API endpoints
 export const fetchRegisteredMembers = async (params = {}) => {
-  const response = await api.get('/registered-members', { params });
+  const response = await axiosInstance.get('/registered-members', { params });
   return response.data;
 };
 
 export const fetchMemberStats = async () => {
-  const response = await api.get('/registered-members/stats');
+  const response = await axiosInstance.get('/registered-members/stats');
   return response.data;
 };
 
 export const createRegisteredMember = async (memberData) => {
-  const response = await api.post('/registered-members', memberData);
-  return response.data;
-};
-
-export const updateRegisteredMember = async (id, memberData) => {
-  const response = await api.put(`/registered-members/${id}`, memberData);
-  return response.data;
-};
-
-export const deleteRegisteredMember = async (id) => {
-  const response = await api.delete(`/registered-members/${id}`);
+  const response = await axiosInstance.post('/registered-members', memberData);
   return response.data;
 };
 
 export const fetchMemberById = async (id) => {
-  const response = await api.get(`/registered-members/${id}`);
+  const response = await axiosInstance.get(`/registered-members/${id}`);
   return response.data;
 };
+
+export const updateMemberStatus = async (id, status) => {
+  const response = await axiosInstance.patch(`/registered-members/${id}/status`, { status });
+  return response.data;
+};
+
+export const updateMember = async (id, memberData) => {
+  const response = await axiosInstance.put(`/registered-members/${id}`, memberData);
+  return response.data;
+};
+
+export const updateRegisteredMember = updateMember;
+
+export const deleteMember = async (id) => {
+  const response = await axiosInstance.delete(`/registered-members/${id}`);
+  return response.data;
+};
+
+export const deleteRegisteredMember = deleteMember;
+
+export default axiosInstance;

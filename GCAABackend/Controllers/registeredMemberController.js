@@ -46,10 +46,10 @@ export const getRegisteredMembers = async (req, res) => {
 
     // Filter status: if viewing from public directory, NEVER show Pending or Rejected members
     if (req.query.view === 'public') {
-      filter.status = { $in: ['Paid', 'Verified', 'Active'] };
+      filter.status = { $in: ['Paid', 'Verified', 'Active', 'In Memoriam'] };
     } else if (status) {
       if (status === 'Paid') {
-        filter.status = { $in: ['Paid', 'Verified', 'Active'] };
+        filter.status = { $in: ['Paid', 'Verified', 'Active', 'In Memoriam'] };
       } else {
         filter.status = status;
       }

@@ -19,7 +19,8 @@ import { fetchBatchAlumniFromApi } from '../Api/batchAlumniApi';
 // ✅ Helper: Extract only the numeric year from strings like "Prior to 1985", "Diploma 1988-91", "2020"
 const extractYear = (yearStr) => {
   if (!yearStr) return '';
-  const str = yearStr.toString();
+  const str = yearStr.toString().trim();
+  if (str.toLowerCase().includes('prior')) return 'Prior to 1985';
   const matches = str.match(/\d{4}/g);
   if (!matches || matches.length === 0) return str;
   return matches[0];
@@ -125,7 +126,7 @@ export const AlumniDataListPage = () => {
 
   // Sorted list of unique batch years for active cohort
   const activeBatches = useMemo(() => {
-    const years = Array.from(new Set(currentRecords.map((r) => r.year.toString())));
+    const years = Array.from(new Set(currentRecords.map((r) => r.year?.toString() || ''))).filter(Boolean);
     return years.sort((a, b) => {
       if (a.toLowerCase().includes('prior')) return -1;
       if (b.toLowerCase().includes('prior')) return 1;
@@ -144,8 +145,10 @@ export const AlumniDataListPage = () => {
   const batchStats = useMemo(() => {
     const stats = {};
     currentRecords.forEach((item) => {
-      const yr = item.year.toString();
-      stats[yr] = (stats[yr] || 0) + 1;
+      const yr = item.year?.toString() || '';
+      if (yr) {
+        stats[yr] = (stats[yr] || 0) + 1;
+      }
     });
     return stats;
   }, [currentRecords]);
@@ -173,14 +176,10 @@ export const AlumniDataListPage = () => {
       })
       .sort((a, b) => {
         if (sortBy === 'year-asc') {
-          const ya = parseInt(a.year, 10) || 1980;
-          const yb = parseInt(b.year, 10) || 1980;
-          return ya - yb || a.sno - b.sno;
+          return a.sno - b.sno;
         }
         if (sortBy === 'year-desc') {
-          const ya = parseInt(a.year, 10) || 1980;
-          const yb = parseInt(b.year, 10) || 1980;
-          return yb - ya || a.sno - b.sno;
+          return b.sno - a.sno;
         }
         if (sortBy === 'name-asc') {
           return a.name.localeCompare(b.name);
@@ -580,12 +579,14 @@ export const AlumniDataListPage = () => {
                             </td>
 
                             <td className="py-2.5 px-4 sm:px-6 text-left whitespace-nowrap">
-                              <span
-                                style={numFont}
-                                className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900"
-                              >
-                                {displayYear}
-                              </span>
+                              {displayYear ? (
+                                <span
+                                  style={numFont}
+                                  className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-black bg-neutral-100 border border-neutral-200 text-neutral-900"
+                                >
+                                  {displayYear}
+                                </span>
+                              ) : null}
                             </td>
 
                             <td className="py-2.5 px-4 sm:px-6 font-bold text-neutral-900 text-left">

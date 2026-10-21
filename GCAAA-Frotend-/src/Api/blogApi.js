@@ -1,20 +1,11 @@
-import axios from 'axios';
-import { API_BASE_URL } from './config';
-
-export const blogApiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000,
-});
+import axiosInstance from './axiosInstance';
 
 /**
  * Fetch all published blogs from backend API
  * @param {object} params - { category, search, tag, page, limit }
  */
 export const fetchBlogsFromApi = async (params = {}) => {
-  const response = await blogApiClient.get('/blogs', { params });
+  const response = await axiosInstance.get('/blogs', { params });
   return response.data;
 };
 
@@ -23,6 +14,9 @@ export const fetchBlogsFromApi = async (params = {}) => {
  * @param {string} idOrSlug
  */
 export const fetchBlogByIdOrSlug = async (idOrSlug) => {
-  const response = await blogApiClient.get(`/blogs/${idOrSlug}`);
+  const response = await axiosInstance.get(`/blogs/${idOrSlug}`);
   return response.data;
 };
+
+export const blogApiClient = axiosInstance;
+export default axiosInstance;

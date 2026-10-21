@@ -1,19 +1,10 @@
-import axios from 'axios';
-import { API_BASE_URL } from './config';
-
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000,
-});
+import axiosInstance from './axiosInstance';
 
 /**
  * Fetch batch alumni records for All Batches of GCAAA
  */
 export const fetchBatchAlumniFromApi = async (params = {}) => {
-  const response = await apiClient.get('/batch-alumni', { params });
+  const response = await axiosInstance.get('/batch-alumni', { params });
   return response.data;
 };
 
@@ -21,6 +12,9 @@ export const fetchBatchAlumniFromApi = async (params = {}) => {
  * Fetch batch alumni statistics
  */
 export const fetchBatchAlumniStatsFromApi = async () => {
-  const response = await apiClient.get('/batch-alumni/stats');
+  const response = await axiosInstance.get('/batch-alumni/stats');
   return response.data;
 };
+
+export const apiClient = axiosInstance;
+export default axiosInstance;
